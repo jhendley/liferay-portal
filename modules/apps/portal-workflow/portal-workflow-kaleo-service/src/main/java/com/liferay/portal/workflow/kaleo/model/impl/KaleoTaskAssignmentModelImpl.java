@@ -34,6 +34,9 @@ import com.liferay.portal.workflow.kaleo.model.KaleoTaskAssignmentModel;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationHandler;
+
 import java.sql.Types;
 
 import java.util.Collections;
@@ -239,6 +242,32 @@ public class KaleoTaskAssignmentModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
+	}
+
+	private static Function<InvocationHandler, KaleoTaskAssignment>
+		_getProxyProviderFunction() {
+
+		Class<?> proxyClass = ProxyUtil.getProxyClass(
+			KaleoTaskAssignment.class.getClassLoader(),
+			KaleoTaskAssignment.class, ModelWrapper.class);
+
+		try {
+			Constructor<KaleoTaskAssignment> constructor =
+				(Constructor<KaleoTaskAssignment>)proxyClass.getConstructor(
+					InvocationHandler.class);
+
+			return invocationHandler -> {
+				try {
+					return constructor.newInstance(invocationHandler);
+				}
+				catch (ReflectiveOperationException roe) {
+					throw new InternalError(roe);
+				}
+			};
+		}
+		catch (NoSuchMethodException nsme) {
+			throw new InternalError(nsme);
+		}
 	}
 
 	private static final Map<String, Function<KaleoTaskAssignment, Object>>
@@ -967,8 +996,7 @@ public class KaleoTaskAssignmentModelImpl
 	@Override
 	public KaleoTaskAssignment toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = (KaleoTaskAssignment)ProxyUtil.newProxyInstance(
-				_classLoader, _escapedModelInterfaces,
+			_escapedModel = _escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -1274,11 +1302,8 @@ public class KaleoTaskAssignmentModelImpl
 		return sb.toString();
 	}
 
-	private static final ClassLoader _classLoader =
-		KaleoTaskAssignment.class.getClassLoader();
-	private static final Class<?>[] _escapedModelInterfaces = new Class[] {
-		KaleoTaskAssignment.class, ModelWrapper.class
-	};
+	private static final Function<InvocationHandler, KaleoTaskAssignment>
+		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
 
 	private long _kaleoTaskAssignmentId;
 	private long _groupId;

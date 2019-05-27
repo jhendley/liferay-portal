@@ -38,6 +38,9 @@ import com.liferay.portal.kernel.util.StringBundler;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationHandler;
+
 import java.sql.Types;
 
 import java.util.ArrayList;
@@ -289,6 +292,32 @@ public class LayoutPageTemplateCollectionModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
+	}
+
+	private static Function<InvocationHandler, LayoutPageTemplateCollection>
+		_getProxyProviderFunction() {
+
+		Class<?> proxyClass = ProxyUtil.getProxyClass(
+			LayoutPageTemplateCollection.class.getClassLoader(),
+			LayoutPageTemplateCollection.class, ModelWrapper.class);
+
+		try {
+			Constructor<LayoutPageTemplateCollection> constructor =
+				(Constructor<LayoutPageTemplateCollection>)
+					proxyClass.getConstructor(InvocationHandler.class);
+
+			return invocationHandler -> {
+				try {
+					return constructor.newInstance(invocationHandler);
+				}
+				catch (ReflectiveOperationException roe) {
+					throw new InternalError(roe);
+				}
+			};
+		}
+		catch (NoSuchMethodException nsme) {
+			throw new InternalError(nsme);
+		}
 	}
 
 	private static final Map
@@ -834,10 +863,8 @@ public class LayoutPageTemplateCollectionModelImpl
 	@Override
 	public LayoutPageTemplateCollection toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel =
-				(LayoutPageTemplateCollection)ProxyUtil.newProxyInstance(
-					_classLoader, _escapedModelInterfaces,
-					new AutoEscapeBeanHandler(this));
+			_escapedModel = _escapedModelProxyProviderFunction.apply(
+				new AutoEscapeBeanHandler(this));
 		}
 
 		return _escapedModel;
@@ -1095,11 +1122,9 @@ public class LayoutPageTemplateCollectionModelImpl
 		return sb.toString();
 	}
 
-	private static final ClassLoader _classLoader =
-		LayoutPageTemplateCollection.class.getClassLoader();
-	private static final Class<?>[] _escapedModelInterfaces = new Class[] {
-		LayoutPageTemplateCollection.class, ModelWrapper.class
-	};
+	private static final Function
+		<InvocationHandler, LayoutPageTemplateCollection>
+			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
 
 	private String _uuid;
 	private String _originalUuid;

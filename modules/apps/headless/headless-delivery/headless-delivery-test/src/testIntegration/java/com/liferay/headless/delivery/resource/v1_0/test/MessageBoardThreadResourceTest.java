@@ -53,7 +53,7 @@ public class MessageBoardThreadResourceTest
 	}
 
 	@Override
-	protected MessageBoardThread randomMessageBoardThread() {
+	protected MessageBoardThread randomMessageBoardThread() throws Exception {
 		MessageBoardThread messageBoardThread =
 			super.randomMessageBoardThread();
 

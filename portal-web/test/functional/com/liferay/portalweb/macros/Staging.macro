@@ -738,16 +738,26 @@ definition {
 	}
 
 	macro publishCustomPublication {
+		Pause(locator1 = "3000");
+
 		LexiconEntry.gotoAdd();
 
-		AssertClickNoError(
-			locator1 = "Staging#STAGING_PUBLISH_TO_LIVE_BUTTON",
-			value1 = "Publish to Live"
-		);
+		if ("${remoteStaging}" == "true") {
+			AssertClickNoError(
+				locator1 = "Staging#STAGING_PUBLISH_TO_REMOTE_LIVE_BUTTON",
+				value1 = "Publish to Remote Live");
+		}
+		else {
+			AssertClickNoError(
+				locator1 = "Staging#STAGING_PUBLISH_TO_LIVE_BUTTON",
+				value1 = "Publish to Live");
+		}
 
 		Pause(locator1 = "30000");
 
-		AssertTextEquals(locator1 = "Staging#PROCESS_RESULT", value1 = "SUCCESSFUL");
+		AssertTextEquals(
+			locator1 = "Staging#PROCESS_RESULT",
+			value1 = "SUCCESSFUL");
 	}
 
 	macro publishToLive {

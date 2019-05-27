@@ -5,7 +5,7 @@ dependencies {
 	compileOnly group: "com.liferay", name: "com.liferay.portal.instance.lifecycle.api", version: "1.0.0"
 	compileOnly group: "com.liferay", name: "com.liferay.portal.rules.engine.api", version: "3.0.0"
 	compileOnly group: "com.liferay", name: "com.liferay.portal.spring.extender.api", version: "3.0.0"
-	compileOnly group: "com.liferay", name: "com.liferay.portal.workflow.api", version: "1.2.0"
+	compileOnly group: "com.liferay", name: "com.liferay.portal.workflow.api", version: "4.0.0"
 	compileOnly group: "com.liferay", name: "com.liferay.portal.workflow.kaleo.api", version: "3.3.0"
 	compileOnly group: "com.liferay", name: "com.liferay.portal.workflow.kaleo.definition.api", version: "3.0.0"
 	compileOnly group: "com.liferay", name: "com.liferay.portal.workflow.kaleo.runtime.api", version: "3.1.0"

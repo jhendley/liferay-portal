@@ -27,6 +27,7 @@ import com.liferay.commerce.discount.exception.CommerceDiscountCouponCodeExcepti
 import com.liferay.commerce.discount.service.CommerceDiscountLocalService;
 import com.liferay.commerce.exception.CommerceOrderBillingAddressException;
 import com.liferay.commerce.exception.CommerceOrderPurchaseOrderNumberException;
+import com.liferay.commerce.exception.CommerceOrderRequestedDeliveryDateException;
 import com.liferay.commerce.exception.CommerceOrderShippingAddressException;
 import com.liferay.commerce.exception.CommerceOrderShippingMethodException;
 import com.liferay.commerce.exception.CommerceOrderStatusException;
@@ -65,6 +66,7 @@ import com.liferay.portal.kernel.transaction.TransactionCommitCallbackUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StackTraceUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -311,9 +313,15 @@ public class CommerceOrderLocalServiceImpl
 
 		// Workflow
 
-		workflowInstanceLinkLocalService.deleteWorkflowInstanceLinks(
-			commerceOrder.getCompanyId(), commerceOrder.getGroupId(),
-			CommerceOrder.class.getName(), commerceOrder.getCommerceOrderId());
+		if (hasWorkflowDefinition(
+				commerceOrder.getGroupId(),
+				CommerceOrderConstants.TYPE_PK_APPROVAL)) {
+
+			workflowInstanceLinkLocalService.deleteWorkflowInstanceLinks(
+				commerceOrder.getCompanyId(), commerceOrder.getScopeGroupId(),
+				CommerceOrder.class.getName(),
+				commerceOrder.getCommerceOrderId());
+		}
 
 		return commerceOrder;
 	}
@@ -416,15 +424,11 @@ public class CommerceOrderLocalServiceImpl
 		// Workflow
 
 		if (hasWorkflowDefinition(
-				commerceOrder.getScopeGroupId(),
-				commerceOrder.getCommerceOrderId())) {
-
-			CommerceAccount commerceAccount =
-				commerceOrder.getCommerceAccount();
+				commerceOrder.getGroupId(),
+				CommerceOrderConstants.TYPE_PK_APPROVAL)) {
 
 			workflowInstanceLinkLocalService.deleteWorkflowInstanceLinks(
-				commerceOrder.getCompanyId(),
-				commerceAccount.getCommerceAccountGroupId(),
+				commerceOrder.getCompanyId(), commerceOrder.getScopeGroupId(),
 				CommerceOrder.class.getName(),
 				commerceOrder.getCommerceOrderId());
 		}
@@ -964,6 +968,36 @@ public class CommerceOrderLocalServiceImpl
 			commerceOrderLocalService.getCommerceOrder(commerceOrderId);
 
 		commerceOrder.setExpandoBridgeAttributes(serviceContext);
+
+		return commerceOrderPersistence.update(commerceOrder);
+	}
+
+	@Indexable(type = IndexableType.REINDEX)
+	@Override
+	public CommerceOrder updateInfo(
+			long commerceOrderId, String printedNote,
+			int requestedDeliveryDateMonth, int requestedDeliveryDateDay,
+			int requestedDeliveryDateYear, int requestedDeliveryDateHour,
+			int requestedDeliveryDateMinute, ServiceContext serviceContext)
+		throws PortalException {
+
+		User user = userLocalService.getUser(serviceContext.getUserId());
+
+		CommerceOrder commerceOrder = commerceOrderPersistence.findByPrimaryKey(
+			commerceOrderId);
+
+		Date requestedDeliveryDate = PortalUtil.getDate(
+			requestedDeliveryDateMonth, requestedDeliveryDateDay,
+			requestedDeliveryDateYear, requestedDeliveryDateHour,
+			requestedDeliveryDateMinute, user.getTimeZone(),
+			CommerceOrderRequestedDeliveryDateException.class);
+
+		if (requestedDeliveryDate.before(new Date())) {
+			throw new CommerceOrderRequestedDeliveryDateException();
+		}
+
+		commerceOrder.setPrintedNote(printedNote);
+		commerceOrder.setRequestedDeliveryDate(requestedDeliveryDate);
 
 		return commerceOrderPersistence.update(commerceOrder);
 	}

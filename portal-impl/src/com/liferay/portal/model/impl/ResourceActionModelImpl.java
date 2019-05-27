@@ -31,6 +31,9 @@ import com.liferay.portal.kernel.util.StringBundler;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationHandler;
+
 import java.sql.Types;
 
 import java.util.Collections;
@@ -207,6 +210,32 @@ public class ResourceActionModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
+	}
+
+	private static Function<InvocationHandler, ResourceAction>
+		_getProxyProviderFunction() {
+
+		Class<?> proxyClass = ProxyUtil.getProxyClass(
+			ResourceAction.class.getClassLoader(), ResourceAction.class,
+			ModelWrapper.class);
+
+		try {
+			Constructor<ResourceAction> constructor =
+				(Constructor<ResourceAction>)proxyClass.getConstructor(
+					InvocationHandler.class);
+
+			return invocationHandler -> {
+				try {
+					return constructor.newInstance(invocationHandler);
+				}
+				catch (ReflectiveOperationException roe) {
+					throw new InternalError(roe);
+				}
+			};
+		}
+		catch (NoSuchMethodException nsme) {
+			throw new InternalError(nsme);
+		}
 	}
 
 	private static final Map<String, Function<ResourceAction, Object>>
@@ -437,8 +466,7 @@ public class ResourceActionModelImpl
 	@Override
 	public ResourceAction toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = (ResourceAction)ProxyUtil.newProxyInstance(
-				_classLoader, _escapedModelInterfaces,
+			_escapedModel = _escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -629,11 +657,8 @@ public class ResourceActionModelImpl
 		return sb.toString();
 	}
 
-	private static final ClassLoader _classLoader =
-		ResourceAction.class.getClassLoader();
-	private static final Class<?>[] _escapedModelInterfaces = new Class[] {
-		ResourceAction.class, ModelWrapper.class
-	};
+	private static final Function<InvocationHandler, ResourceAction>
+		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
 
 	private long _mvccVersion;
 	private long _resourceActionId;

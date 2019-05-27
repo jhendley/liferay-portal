@@ -33,6 +33,9 @@ import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationHandler;
+
 import java.sql.Types;
 
 import java.util.Collections;
@@ -211,6 +214,32 @@ public class DDMTemplateLinkModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
+	}
+
+	private static Function<InvocationHandler, DDMTemplateLink>
+		_getProxyProviderFunction() {
+
+		Class<?> proxyClass = ProxyUtil.getProxyClass(
+			DDMTemplateLink.class.getClassLoader(), DDMTemplateLink.class,
+			ModelWrapper.class);
+
+		try {
+			Constructor<DDMTemplateLink> constructor =
+				(Constructor<DDMTemplateLink>)proxyClass.getConstructor(
+					InvocationHandler.class);
+
+			return invocationHandler -> {
+				try {
+					return constructor.newInstance(invocationHandler);
+				}
+				catch (ReflectiveOperationException roe) {
+					throw new InternalError(roe);
+				}
+			};
+		}
+		catch (NoSuchMethodException nsme) {
+			throw new InternalError(nsme);
+		}
 	}
 
 	private static final Map<String, Function<DDMTemplateLink, Object>>
@@ -468,8 +497,7 @@ public class DDMTemplateLinkModelImpl
 	@Override
 	public DDMTemplateLink toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = (DDMTemplateLink)ProxyUtil.newProxyInstance(
-				_classLoader, _escapedModelInterfaces,
+			_escapedModel = _escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -646,11 +674,8 @@ public class DDMTemplateLinkModelImpl
 		return sb.toString();
 	}
 
-	private static final ClassLoader _classLoader =
-		DDMTemplateLink.class.getClassLoader();
-	private static final Class<?>[] _escapedModelInterfaces = new Class[] {
-		DDMTemplateLink.class, ModelWrapper.class
-	};
+	private static final Function<InvocationHandler, DDMTemplateLink>
+		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
 
 	private long _templateLinkId;
 	private long _companyId;

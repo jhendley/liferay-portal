@@ -33,6 +33,9 @@ import com.liferay.portal.kernel.util.StringBundler;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationHandler;
+
 import java.sql.Blob;
 import java.sql.Types;
 
@@ -215,6 +218,32 @@ public class DLContentModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
+	}
+
+	private static Function<InvocationHandler, DLContent>
+		_getProxyProviderFunction() {
+
+		Class<?> proxyClass = ProxyUtil.getProxyClass(
+			DLContent.class.getClassLoader(), DLContent.class,
+			ModelWrapper.class);
+
+		try {
+			Constructor<DLContent> constructor =
+				(Constructor<DLContent>)proxyClass.getConstructor(
+					InvocationHandler.class);
+
+			return invocationHandler -> {
+				try {
+					return constructor.newInstance(invocationHandler);
+				}
+				catch (ReflectiveOperationException roe) {
+					throw new InternalError(roe);
+				}
+			};
+		}
+		catch (NoSuchMethodException nsme) {
+			throw new InternalError(nsme);
+		}
 	}
 
 	private static final Map<String, Function<DLContent, Object>>
@@ -569,8 +598,7 @@ public class DLContentModelImpl
 	@Override
 	public DLContent toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = (DLContent)ProxyUtil.newProxyInstance(
-				_classLoader, _escapedModelInterfaces,
+			_escapedModel = _escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -766,11 +794,8 @@ public class DLContentModelImpl
 		return sb.toString();
 	}
 
-	private static final ClassLoader _classLoader =
-		DLContent.class.getClassLoader();
-	private static final Class<?>[] _escapedModelInterfaces = new Class[] {
-		DLContent.class, ModelWrapper.class
-	};
+	private static final Function<InvocationHandler, DLContent>
+		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
 
 	private long _contentId;
 	private long _groupId;

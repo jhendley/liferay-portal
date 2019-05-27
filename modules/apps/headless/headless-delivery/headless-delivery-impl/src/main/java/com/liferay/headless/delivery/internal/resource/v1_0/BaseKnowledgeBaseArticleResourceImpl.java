@@ -26,6 +26,7 @@ import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 import com.liferay.portal.vulcan.util.TransformUtil;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -64,6 +65,9 @@ public abstract class BaseKnowledgeBaseArticleResourceImpl
 
 	@Override
 	@DELETE
+	@Operation(
+		description = "Deletes the knowledge base article and returns a 204 if the operation succeeds."
+	)
 	@Parameters(
 		value = {
 			@Parameter(in = ParameterIn.PATH, name = "knowledgeBaseArticleId")
@@ -80,6 +84,7 @@ public abstract class BaseKnowledgeBaseArticleResourceImpl
 
 	@Override
 	@GET
+	@Operation(description = "Retrieves the knowledge base article.")
 	@Parameters(
 		value = {
 			@Parameter(in = ParameterIn.PATH, name = "knowledgeBaseArticleId")
@@ -98,6 +103,9 @@ public abstract class BaseKnowledgeBaseArticleResourceImpl
 
 	@Override
 	@Consumes({"application/json", "application/xml"})
+	@Operation(
+		description = "Updates only the fields received in the request body, leaving any other fields untouched."
+	)
 	@PATCH
 	@Parameters(
 		value = {
@@ -119,6 +127,11 @@ public abstract class BaseKnowledgeBaseArticleResourceImpl
 		if (knowledgeBaseArticle.getArticleBody() != null) {
 			existingKnowledgeBaseArticle.setArticleBody(
 				knowledgeBaseArticle.getArticleBody());
+		}
+
+		if (knowledgeBaseArticle.getCustomFields() != null) {
+			existingKnowledgeBaseArticle.setCustomFields(
+				knowledgeBaseArticle.getCustomFields());
 		}
 
 		if (knowledgeBaseArticle.getDateCreated() != null) {
@@ -194,6 +207,9 @@ public abstract class BaseKnowledgeBaseArticleResourceImpl
 
 	@Override
 	@Consumes({"application/json", "application/xml"})
+	@Operation(
+		description = "Replaces the knowledge base article with the information sent in the request body. Any missing fields are deleted, unless they are required."
+	)
 	@PUT
 	@Parameters(
 		value = {
@@ -214,6 +230,9 @@ public abstract class BaseKnowledgeBaseArticleResourceImpl
 
 	@Override
 	@DELETE
+	@Operation(
+		description = "Deletes the knowledge base article's rating and returns a 204 if the operation succeeds."
+	)
 	@Parameters(
 		value = {
 			@Parameter(in = ParameterIn.PATH, name = "knowledgeBaseArticleId")
@@ -230,6 +249,7 @@ public abstract class BaseKnowledgeBaseArticleResourceImpl
 
 	@Override
 	@GET
+	@Operation(description = "Retrieves the knowledge base article's rating.")
 	@Parameters(
 		value = {
 			@Parameter(in = ParameterIn.PATH, name = "knowledgeBaseArticleId")
@@ -248,6 +268,7 @@ public abstract class BaseKnowledgeBaseArticleResourceImpl
 
 	@Override
 	@Consumes({"application/json", "application/xml"})
+	@Operation(description = "Creates a rating for the knowledge base article.")
 	@POST
 	@Parameters(
 		value = {
@@ -268,6 +289,9 @@ public abstract class BaseKnowledgeBaseArticleResourceImpl
 
 	@Override
 	@Consumes({"application/json", "application/xml"})
+	@Operation(
+		description = "Replaces the rating with the information sent in the request body. Any missing fields are deleted, unless they are required."
+	)
 	@PUT
 	@Parameters(
 		value = {
@@ -288,6 +312,9 @@ public abstract class BaseKnowledgeBaseArticleResourceImpl
 
 	@Override
 	@GET
+	@Operation(
+		description = "Retrieves the parent knowledge base article's child knowledge base articles. Results can be paginated, filtered, searched, and sorted."
+	)
 	@Parameters(
 		value = {
 			@Parameter(
@@ -320,6 +347,9 @@ public abstract class BaseKnowledgeBaseArticleResourceImpl
 
 	@Override
 	@Consumes({"application/json", "application/xml"})
+	@Operation(
+		description = "Creates a child knowledge base article of the knowledge base article identified by `parentKnowledgeBaseArticleId`."
+	)
 	@POST
 	@Parameters(
 		value = {
@@ -345,6 +375,9 @@ public abstract class BaseKnowledgeBaseArticleResourceImpl
 
 	@Override
 	@GET
+	@Operation(
+		description = "Retrieves the folder's knowledge base articles. Results can be paginated, filtered, searched, flattened, and sorted."
+	)
 	@Parameters(
 		value = {
 			@Parameter(in = ParameterIn.PATH, name = "knowledgeBaseFolderId"),
@@ -377,6 +410,9 @@ public abstract class BaseKnowledgeBaseArticleResourceImpl
 
 	@Override
 	@Consumes({"application/json", "application/xml"})
+	@Operation(
+		description = "Creates a new knowledge base article in the folder."
+	)
 	@POST
 	@Parameters(
 		value = {
@@ -399,6 +435,9 @@ public abstract class BaseKnowledgeBaseArticleResourceImpl
 
 	@Override
 	@GET
+	@Operation(
+		description = "Retrieves the Site's knowledge base articles. Results can be paginated, filtered, searched, flattened, and sorted."
+	)
 	@Parameters(
 		value = {
 			@Parameter(in = ParameterIn.PATH, name = "siteId"),
@@ -426,6 +465,7 @@ public abstract class BaseKnowledgeBaseArticleResourceImpl
 
 	@Override
 	@Consumes({"application/json", "application/xml"})
+	@Operation(description = "Creates a new knowledge base article.")
 	@POST
 	@Parameters(value = {@Parameter(in = ParameterIn.PATH, name = "siteId")})
 	@Path("/sites/{siteId}/knowledge-base-articles")

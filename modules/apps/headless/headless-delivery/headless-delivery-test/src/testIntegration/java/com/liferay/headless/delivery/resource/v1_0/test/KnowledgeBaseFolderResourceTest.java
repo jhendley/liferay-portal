@@ -38,7 +38,7 @@ public class KnowledgeBaseFolderResourceTest
 	}
 
 	@Override
-	protected KnowledgeBaseFolder randomKnowledgeBaseFolder() {
+	protected KnowledgeBaseFolder randomKnowledgeBaseFolder() throws Exception {
 		KnowledgeBaseFolder knowledgeBaseFolder =
 			super.randomKnowledgeBaseFolder();
 

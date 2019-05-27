@@ -7,3 +7,8 @@
 # Bundle Version 4.0.0
 #
 af130349a6c4174a4593aff077e5ca979b93e933^..ae68b8997c4381c912db0cf4aab6d7b512ce207f=LPS-95133
+
+#
+# Bundle Version 6.0.0
+#
+ae68b8997c4381c912db0cf4aab6d7b512ce207f^..c9508171f13430fadfac2a9aca68cea711e7c799=LPS-95092 LPS-95133

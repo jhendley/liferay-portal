@@ -35,14 +35,39 @@ import javax.annotation.Generated;
 @Generated("")
 public class DocumentResource {
 
-	public Page<Document> getDocumentFolderDocumentsPage(
+	public static Page<Document> getDocumentFolderDocumentsPage(
 			Long documentFolderId, String search, String filterString,
 			Pagination pagination, String sortString)
+		throws Exception {
+
+		HttpInvoker.HttpResponse httpResponse =
+			getDocumentFolderDocumentsPageHttpResponse(
+				documentFolderId, search, filterString, pagination, sortString);
+
+		String content = httpResponse.getContent();
+
+		_logger.fine("HTTP response content: " + content);
+
+		_logger.fine("HTTP response message: " + httpResponse.getMessage());
+		_logger.fine(
+			"HTTP response status code: " + httpResponse.getStatusCode());
+
+		return Page.of(content, DocumentSerDes::toDTO);
+	}
+
+	public static HttpInvoker.HttpResponse
+			getDocumentFolderDocumentsPageHttpResponse(
+				Long documentFolderId, String search, String filterString,
+				Pagination pagination, String sortString)
 		throws Exception {
 
 		HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
 
 		httpInvoker.httpMethod(HttpInvoker.HttpMethod.GET);
+
+		if (search != null) {
+			httpInvoker.parameter("search", String.valueOf(search));
+		}
 
 		if (filterString != null) {
 			httpInvoker.parameter("filter", filterString);
@@ -64,20 +89,42 @@ public class DocumentResource {
 
 		httpInvoker.userNameAndPassword("test@liferay.com:test");
 
-		HttpInvoker.HttpResponse httpResponse = httpInvoker.invoke();
+		return httpInvoker.invoke();
+	}
+
+	public static Document postDocumentFolderDocument(
+			Long documentFolderId, Document document,
+			Map<String, File> multipartFiles)
+		throws Exception {
+
+		HttpInvoker.HttpResponse httpResponse =
+			postDocumentFolderDocumentHttpResponse(
+				documentFolderId, document, multipartFiles);
 
 		String content = httpResponse.getContent();
 
 		_logger.fine("HTTP response content: " + content);
 
 		_logger.fine("HTTP response message: " + httpResponse.getMessage());
-		_logger.fine("HTTP response status: " + httpResponse.getStatus());
+		_logger.fine(
+			"HTTP response status code: " + httpResponse.getStatusCode());
 
-		return Page.of(content, DocumentSerDes::toDTO);
+		try {
+			return DocumentSerDes.toDTO(content);
+		}
+		catch (Exception e) {
+			_logger.log(
+				Level.WARNING, "Unable to process HTTP response: " + content,
+				e);
+
+			throw e;
+		}
 	}
 
-	public Document postDocumentFolderDocument(
-			Long documentFolderId, Document document, Map<String, File> files)
+	public static HttpInvoker.HttpResponse
+			postDocumentFolderDocumentHttpResponse(
+				Long documentFolderId, Document document,
+				Map<String, File> multipartFiles)
 		throws Exception {
 
 		HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
@@ -86,7 +133,7 @@ public class DocumentResource {
 
 		httpInvoker.part("document", DocumentSerDes.toJSON(document));
 
-		for (Map.Entry<String, File> entry : files.entrySet()) {
+		for (Map.Entry<String, File> entry : multipartFiles.entrySet()) {
 			httpInvoker.part(entry.getKey(), entry.getValue());
 		}
 
@@ -98,28 +145,26 @@ public class DocumentResource {
 
 		httpInvoker.userNameAndPassword("test@liferay.com:test");
 
-		HttpInvoker.HttpResponse httpResponse = httpInvoker.invoke();
+		return httpInvoker.invoke();
+	}
+
+	public static void deleteDocument(Long documentId) throws Exception {
+		HttpInvoker.HttpResponse httpResponse = deleteDocumentHttpResponse(
+			documentId);
 
 		String content = httpResponse.getContent();
 
 		_logger.fine("HTTP response content: " + content);
 
 		_logger.fine("HTTP response message: " + httpResponse.getMessage());
-		_logger.fine("HTTP response status: " + httpResponse.getStatus());
-
-		try {
-			return DocumentSerDes.toDTO(content);
-		}
-		catch (Exception e) {
-			_logger.log(
-				Level.WARNING, "Unable to process HTTP response: " + content,
-				e);
-
-			throw e;
-		}
+		_logger.fine(
+			"HTTP response status code: " + httpResponse.getStatusCode());
 	}
 
-	public void deleteDocument(Long documentId) throws Exception {
+	public static HttpInvoker.HttpResponse deleteDocumentHttpResponse(
+			Long documentId)
+		throws Exception {
+
 		HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
 
 		httpInvoker.httpMethod(HttpInvoker.HttpMethod.DELETE);
@@ -130,35 +175,20 @@ public class DocumentResource {
 
 		httpInvoker.userNameAndPassword("test@liferay.com:test");
 
-		HttpInvoker.HttpResponse httpResponse = httpInvoker.invoke();
-
-		String content = httpResponse.getContent();
-
-		_logger.fine("HTTP response content: " + content);
-
-		_logger.fine("HTTP response message: " + httpResponse.getMessage());
-		_logger.fine("HTTP response status: " + httpResponse.getStatus());
+		return httpInvoker.invoke();
 	}
 
-	public Document getDocument(Long documentId) throws Exception {
-		HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
-
-		httpInvoker.httpMethod(HttpInvoker.HttpMethod.GET);
-
-		httpInvoker.path(
-			"http://localhost:8080/o/headless-delivery/v1.0/documents/{documentId}",
+	public static Document getDocument(Long documentId) throws Exception {
+		HttpInvoker.HttpResponse httpResponse = getDocumentHttpResponse(
 			documentId);
-
-		httpInvoker.userNameAndPassword("test@liferay.com:test");
-
-		HttpInvoker.HttpResponse httpResponse = httpInvoker.invoke();
 
 		String content = httpResponse.getContent();
 
 		_logger.fine("HTTP response content: " + content);
 
 		_logger.fine("HTTP response message: " + httpResponse.getMessage());
-		_logger.fine("HTTP response status: " + httpResponse.getStatus());
+		_logger.fine(
+			"HTTP response status code: " + httpResponse.getStatusCode());
 
 		try {
 			return DocumentSerDes.toDTO(content);
@@ -172,8 +202,54 @@ public class DocumentResource {
 		}
 	}
 
-	public Document patchDocument(
-			Long documentId, Document document, Map<String, File> files)
+	public static HttpInvoker.HttpResponse getDocumentHttpResponse(
+			Long documentId)
+		throws Exception {
+
+		HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+		httpInvoker.httpMethod(HttpInvoker.HttpMethod.GET);
+
+		httpInvoker.path(
+			"http://localhost:8080/o/headless-delivery/v1.0/documents/{documentId}",
+			documentId);
+
+		httpInvoker.userNameAndPassword("test@liferay.com:test");
+
+		return httpInvoker.invoke();
+	}
+
+	public static Document patchDocument(
+			Long documentId, Document document,
+			Map<String, File> multipartFiles)
+		throws Exception {
+
+		HttpInvoker.HttpResponse httpResponse = patchDocumentHttpResponse(
+			documentId, document, multipartFiles);
+
+		String content = httpResponse.getContent();
+
+		_logger.fine("HTTP response content: " + content);
+
+		_logger.fine("HTTP response message: " + httpResponse.getMessage());
+		_logger.fine(
+			"HTTP response status code: " + httpResponse.getStatusCode());
+
+		try {
+			return DocumentSerDes.toDTO(content);
+		}
+		catch (Exception e) {
+			_logger.log(
+				Level.WARNING, "Unable to process HTTP response: " + content,
+				e);
+
+			throw e;
+		}
+	}
+
+	public static HttpInvoker.HttpResponse patchDocumentHttpResponse(
+			Long documentId, Document document,
+			Map<String, File> multipartFiles)
 		throws Exception {
 
 		HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
@@ -182,7 +258,7 @@ public class DocumentResource {
 
 		httpInvoker.part("document", DocumentSerDes.toJSON(document));
 
-		for (Map.Entry<String, File> entry : files.entrySet()) {
+		for (Map.Entry<String, File> entry : multipartFiles.entrySet()) {
 			httpInvoker.part(entry.getKey(), entry.getValue());
 		}
 
@@ -194,14 +270,24 @@ public class DocumentResource {
 
 		httpInvoker.userNameAndPassword("test@liferay.com:test");
 
-		HttpInvoker.HttpResponse httpResponse = httpInvoker.invoke();
+		return httpInvoker.invoke();
+	}
+
+	public static Document putDocument(
+			Long documentId, Document document,
+			Map<String, File> multipartFiles)
+		throws Exception {
+
+		HttpInvoker.HttpResponse httpResponse = putDocumentHttpResponse(
+			documentId, document, multipartFiles);
 
 		String content = httpResponse.getContent();
 
 		_logger.fine("HTTP response content: " + content);
 
 		_logger.fine("HTTP response message: " + httpResponse.getMessage());
-		_logger.fine("HTTP response status: " + httpResponse.getStatus());
+		_logger.fine(
+			"HTTP response status code: " + httpResponse.getStatusCode());
 
 		try {
 			return DocumentSerDes.toDTO(content);
@@ -215,8 +301,9 @@ public class DocumentResource {
 		}
 	}
 
-	public Document putDocument(
-			Long documentId, Document document, Map<String, File> files)
+	public static HttpInvoker.HttpResponse putDocumentHttpResponse(
+			Long documentId, Document document,
+			Map<String, File> multipartFiles)
 		throws Exception {
 
 		HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
@@ -225,7 +312,7 @@ public class DocumentResource {
 
 		httpInvoker.part("document", DocumentSerDes.toJSON(document));
 
-		for (Map.Entry<String, File> entry : files.entrySet()) {
+		for (Map.Entry<String, File> entry : multipartFiles.entrySet()) {
 			httpInvoker.part(entry.getKey(), entry.getValue());
 		}
 
@@ -237,28 +324,28 @@ public class DocumentResource {
 
 		httpInvoker.userNameAndPassword("test@liferay.com:test");
 
-		HttpInvoker.HttpResponse httpResponse = httpInvoker.invoke();
+		return httpInvoker.invoke();
+	}
+
+	public static void deleteDocumentMyRating(Long documentId)
+		throws Exception {
+
+		HttpInvoker.HttpResponse httpResponse =
+			deleteDocumentMyRatingHttpResponse(documentId);
 
 		String content = httpResponse.getContent();
 
 		_logger.fine("HTTP response content: " + content);
 
 		_logger.fine("HTTP response message: " + httpResponse.getMessage());
-		_logger.fine("HTTP response status: " + httpResponse.getStatus());
-
-		try {
-			return DocumentSerDes.toDTO(content);
-		}
-		catch (Exception e) {
-			_logger.log(
-				Level.WARNING, "Unable to process HTTP response: " + content,
-				e);
-
-			throw e;
-		}
+		_logger.fine(
+			"HTTP response status code: " + httpResponse.getStatusCode());
 	}
 
-	public void deleteDocumentMyRating(Long documentId) throws Exception {
+	public static HttpInvoker.HttpResponse deleteDocumentMyRatingHttpResponse(
+			Long documentId)
+		throws Exception {
+
 		HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
 
 		httpInvoker.httpMethod(HttpInvoker.HttpMethod.DELETE);
@@ -269,38 +356,23 @@ public class DocumentResource {
 
 		httpInvoker.userNameAndPassword("test@liferay.com:test");
 
-		HttpInvoker.HttpResponse httpResponse = httpInvoker.invoke();
-
-		String content = httpResponse.getContent();
-
-		_logger.fine("HTTP response content: " + content);
-
-		_logger.fine("HTTP response message: " + httpResponse.getMessage());
-		_logger.fine("HTTP response status: " + httpResponse.getStatus());
+		return httpInvoker.invoke();
 	}
 
-	public com.liferay.headless.delivery.client.dto.v1_0.Rating
+	public static com.liferay.headless.delivery.client.dto.v1_0.Rating
 			getDocumentMyRating(Long documentId)
 		throws Exception {
 
-		HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
-
-		httpInvoker.httpMethod(HttpInvoker.HttpMethod.GET);
-
-		httpInvoker.path(
-			"http://localhost:8080/o/headless-delivery/v1.0/documents/{documentId}/my-rating",
+		HttpInvoker.HttpResponse httpResponse = getDocumentMyRatingHttpResponse(
 			documentId);
-
-		httpInvoker.userNameAndPassword("test@liferay.com:test");
-
-		HttpInvoker.HttpResponse httpResponse = httpInvoker.invoke();
 
 		String content = httpResponse.getContent();
 
 		_logger.fine("HTTP response content: " + content);
 
 		_logger.fine("HTTP response message: " + httpResponse.getMessage());
-		_logger.fine("HTTP response status: " + httpResponse.getStatus());
+		_logger.fine(
+			"HTTP response status code: " + httpResponse.getStatusCode());
 
 		try {
 			return com.liferay.headless.delivery.client.serdes.v1_0.
@@ -315,13 +387,61 @@ public class DocumentResource {
 		}
 	}
 
-	public com.liferay.headless.delivery.client.dto.v1_0.Rating
+	public static HttpInvoker.HttpResponse getDocumentMyRatingHttpResponse(
+			Long documentId)
+		throws Exception {
+
+		HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+		httpInvoker.httpMethod(HttpInvoker.HttpMethod.GET);
+
+		httpInvoker.path(
+			"http://localhost:8080/o/headless-delivery/v1.0/documents/{documentId}/my-rating",
+			documentId);
+
+		httpInvoker.userNameAndPassword("test@liferay.com:test");
+
+		return httpInvoker.invoke();
+	}
+
+	public static com.liferay.headless.delivery.client.dto.v1_0.Rating
 			postDocumentMyRating(
 				Long documentId,
 				com.liferay.headless.delivery.client.dto.v1_0.Rating rating)
 		throws Exception {
 
+		HttpInvoker.HttpResponse httpResponse =
+			postDocumentMyRatingHttpResponse(documentId, rating);
+
+		String content = httpResponse.getContent();
+
+		_logger.fine("HTTP response content: " + content);
+
+		_logger.fine("HTTP response message: " + httpResponse.getMessage());
+		_logger.fine(
+			"HTTP response status code: " + httpResponse.getStatusCode());
+
+		try {
+			return com.liferay.headless.delivery.client.serdes.v1_0.
+				RatingSerDes.toDTO(content);
+		}
+		catch (Exception e) {
+			_logger.log(
+				Level.WARNING, "Unable to process HTTP response: " + content,
+				e);
+
+			throw e;
+		}
+	}
+
+	public static HttpInvoker.HttpResponse postDocumentMyRatingHttpResponse(
+			Long documentId,
+			com.liferay.headless.delivery.client.dto.v1_0.Rating rating)
+		throws Exception {
+
 		HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+		httpInvoker.body(rating.toString(), "application/json");
 
 		httpInvoker.httpMethod(HttpInvoker.HttpMethod.POST);
 
@@ -331,14 +451,25 @@ public class DocumentResource {
 
 		httpInvoker.userNameAndPassword("test@liferay.com:test");
 
-		HttpInvoker.HttpResponse httpResponse = httpInvoker.invoke();
+		return httpInvoker.invoke();
+	}
+
+	public static com.liferay.headless.delivery.client.dto.v1_0.Rating
+			putDocumentMyRating(
+				Long documentId,
+				com.liferay.headless.delivery.client.dto.v1_0.Rating rating)
+		throws Exception {
+
+		HttpInvoker.HttpResponse httpResponse = putDocumentMyRatingHttpResponse(
+			documentId, rating);
 
 		String content = httpResponse.getContent();
 
 		_logger.fine("HTTP response content: " + content);
 
 		_logger.fine("HTTP response message: " + httpResponse.getMessage());
-		_logger.fine("HTTP response status: " + httpResponse.getStatus());
+		_logger.fine(
+			"HTTP response status code: " + httpResponse.getStatusCode());
 
 		try {
 			return com.liferay.headless.delivery.client.serdes.v1_0.
@@ -353,13 +484,14 @@ public class DocumentResource {
 		}
 	}
 
-	public com.liferay.headless.delivery.client.dto.v1_0.Rating
-			putDocumentMyRating(
-				Long documentId,
-				com.liferay.headless.delivery.client.dto.v1_0.Rating rating)
+	public static HttpInvoker.HttpResponse putDocumentMyRatingHttpResponse(
+			Long documentId,
+			com.liferay.headless.delivery.client.dto.v1_0.Rating rating)
 		throws Exception {
 
 		HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+		httpInvoker.body(rating.toString(), "application/json");
 
 		httpInvoker.httpMethod(HttpInvoker.HttpMethod.PUT);
 
@@ -369,29 +501,30 @@ public class DocumentResource {
 
 		httpInvoker.userNameAndPassword("test@liferay.com:test");
 
-		HttpInvoker.HttpResponse httpResponse = httpInvoker.invoke();
+		return httpInvoker.invoke();
+	}
+
+	public static Page<Document> getSiteDocumentsPage(
+			Long siteId, Boolean flatten, String search, String filterString,
+			Pagination pagination, String sortString)
+		throws Exception {
+
+		HttpInvoker.HttpResponse httpResponse =
+			getSiteDocumentsPageHttpResponse(
+				siteId, flatten, search, filterString, pagination, sortString);
 
 		String content = httpResponse.getContent();
 
 		_logger.fine("HTTP response content: " + content);
 
 		_logger.fine("HTTP response message: " + httpResponse.getMessage());
-		_logger.fine("HTTP response status: " + httpResponse.getStatus());
+		_logger.fine(
+			"HTTP response status code: " + httpResponse.getStatusCode());
 
-		try {
-			return com.liferay.headless.delivery.client.serdes.v1_0.
-				RatingSerDes.toDTO(content);
-		}
-		catch (Exception e) {
-			_logger.log(
-				Level.WARNING, "Unable to process HTTP response: " + content,
-				e);
-
-			throw e;
-		}
+		return Page.of(content, DocumentSerDes::toDTO);
 	}
 
-	public Page<Document> getSiteDocumentsPage(
+	public static HttpInvoker.HttpResponse getSiteDocumentsPageHttpResponse(
 			Long siteId, Boolean flatten, String search, String filterString,
 			Pagination pagination, String sortString)
 		throws Exception {
@@ -399,6 +532,14 @@ public class DocumentResource {
 		HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
 
 		httpInvoker.httpMethod(HttpInvoker.HttpMethod.GET);
+
+		if (flatten != null) {
+			httpInvoker.parameter("flatten", String.valueOf(flatten));
+		}
+
+		if (search != null) {
+			httpInvoker.parameter("search", String.valueOf(search));
+		}
 
 		if (filterString != null) {
 			httpInvoker.parameter("filter", filterString);
@@ -420,48 +561,23 @@ public class DocumentResource {
 
 		httpInvoker.userNameAndPassword("test@liferay.com:test");
 
-		HttpInvoker.HttpResponse httpResponse = httpInvoker.invoke();
-
-		String content = httpResponse.getContent();
-
-		_logger.fine("HTTP response content: " + content);
-
-		_logger.fine("HTTP response message: " + httpResponse.getMessage());
-		_logger.fine("HTTP response status: " + httpResponse.getStatus());
-
-		return Page.of(content, DocumentSerDes::toDTO);
+		return httpInvoker.invoke();
 	}
 
-	public Document postSiteDocument(
-			Long siteId, Document document, Map<String, File> files)
+	public static Document postSiteDocument(
+			Long siteId, Document document, Map<String, File> multipartFiles)
 		throws Exception {
 
-		HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
-
-		httpInvoker.multipart();
-
-		httpInvoker.part("document", DocumentSerDes.toJSON(document));
-
-		for (Map.Entry<String, File> entry : files.entrySet()) {
-			httpInvoker.part(entry.getKey(), entry.getValue());
-		}
-
-		httpInvoker.httpMethod(HttpInvoker.HttpMethod.POST);
-
-		httpInvoker.path(
-			"http://localhost:8080/o/headless-delivery/v1.0/sites/{siteId}/documents",
-			siteId);
-
-		httpInvoker.userNameAndPassword("test@liferay.com:test");
-
-		HttpInvoker.HttpResponse httpResponse = httpInvoker.invoke();
+		HttpInvoker.HttpResponse httpResponse = postSiteDocumentHttpResponse(
+			siteId, document, multipartFiles);
 
 		String content = httpResponse.getContent();
 
 		_logger.fine("HTTP response content: " + content);
 
 		_logger.fine("HTTP response message: " + httpResponse.getMessage());
-		_logger.fine("HTTP response status: " + httpResponse.getStatus());
+		_logger.fine(
+			"HTTP response status code: " + httpResponse.getStatusCode());
 
 		try {
 			return DocumentSerDes.toDTO(content);
@@ -473,6 +589,31 @@ public class DocumentResource {
 
 			throw e;
 		}
+	}
+
+	public static HttpInvoker.HttpResponse postSiteDocumentHttpResponse(
+			Long siteId, Document document, Map<String, File> multipartFiles)
+		throws Exception {
+
+		HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+		httpInvoker.multipart();
+
+		httpInvoker.part("document", DocumentSerDes.toJSON(document));
+
+		for (Map.Entry<String, File> entry : multipartFiles.entrySet()) {
+			httpInvoker.part(entry.getKey(), entry.getValue());
+		}
+
+		httpInvoker.httpMethod(HttpInvoker.HttpMethod.POST);
+
+		httpInvoker.path(
+			"http://localhost:8080/o/headless-delivery/v1.0/sites/{siteId}/documents",
+			siteId);
+
+		httpInvoker.userNameAndPassword("test@liferay.com:test");
+
+		return httpInvoker.invoke();
 	}
 
 	private static final Logger _logger = Logger.getLogger(

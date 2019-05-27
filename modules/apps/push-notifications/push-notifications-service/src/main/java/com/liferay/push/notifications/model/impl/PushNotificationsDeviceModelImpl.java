@@ -36,6 +36,9 @@ import com.liferay.push.notifications.model.PushNotificationsDeviceSoap;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationHandler;
+
 import java.sql.Types;
 
 import java.util.ArrayList;
@@ -272,6 +275,32 @@ public class PushNotificationsDeviceModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
+	}
+
+	private static Function<InvocationHandler, PushNotificationsDevice>
+		_getProxyProviderFunction() {
+
+		Class<?> proxyClass = ProxyUtil.getProxyClass(
+			PushNotificationsDevice.class.getClassLoader(),
+			PushNotificationsDevice.class, ModelWrapper.class);
+
+		try {
+			Constructor<PushNotificationsDevice> constructor =
+				(Constructor<PushNotificationsDevice>)proxyClass.getConstructor(
+					InvocationHandler.class);
+
+			return invocationHandler -> {
+				try {
+					return constructor.newInstance(invocationHandler);
+				}
+				catch (ReflectiveOperationException roe) {
+					throw new InternalError(roe);
+				}
+			};
+		}
+		catch (NoSuchMethodException nsme) {
+			throw new InternalError(nsme);
+		}
 	}
 
 	private static final Map<String, Function<PushNotificationsDevice, Object>>
@@ -594,8 +623,7 @@ public class PushNotificationsDeviceModelImpl
 	@Override
 	public PushNotificationsDevice toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = (PushNotificationsDevice)ProxyUtil.newProxyInstance(
-				_classLoader, _escapedModelInterfaces,
+			_escapedModel = _escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -797,11 +825,8 @@ public class PushNotificationsDeviceModelImpl
 		return sb.toString();
 	}
 
-	private static final ClassLoader _classLoader =
-		PushNotificationsDevice.class.getClassLoader();
-	private static final Class<?>[] _escapedModelInterfaces = new Class[] {
-		PushNotificationsDevice.class, ModelWrapper.class
-	};
+	private static final Function<InvocationHandler, PushNotificationsDevice>
+		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
 
 	private long _pushNotificationsDeviceId;
 	private long _companyId;

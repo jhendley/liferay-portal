@@ -28,11 +28,11 @@ import java.util.List;
  * This class is used by SOAP remote services, specifically {@link com.liferay.commerce.service.http.CommerceOrderItemServiceSoap}.
  *
  * @author Alessio Antonio Rendina
- * @see com.liferay.commerce.service.http.CommerceOrderItemServiceSoap
  * @generated
  */
 @ProviderType
 public class CommerceOrderItemSoap implements Serializable {
+
 	public static CommerceOrderItemSoap toSoapModel(CommerceOrderItem model) {
 		CommerceOrderItemSoap soapModel = new CommerceOrderItemSoap();
 
@@ -55,18 +55,28 @@ public class CommerceOrderItemSoap implements Serializable {
 		soapModel.setUnitPrice(model.getUnitPrice());
 		soapModel.setDiscountAmount(model.getDiscountAmount());
 		soapModel.setFinalPrice(model.getFinalPrice());
-		soapModel.setDiscountPercentageLevel1(model.getDiscountPercentageLevel1());
-		soapModel.setDiscountPercentageLevel2(model.getDiscountPercentageLevel2());
-		soapModel.setDiscountPercentageLevel3(model.getDiscountPercentageLevel3());
-		soapModel.setDiscountPercentageLevel4(model.getDiscountPercentageLevel4());
+		soapModel.setDiscountPercentageLevel1(
+			model.getDiscountPercentageLevel1());
+		soapModel.setDiscountPercentageLevel2(
+			model.getDiscountPercentageLevel2());
+		soapModel.setDiscountPercentageLevel3(
+			model.getDiscountPercentageLevel3());
+		soapModel.setDiscountPercentageLevel4(
+			model.getDiscountPercentageLevel4());
 		soapModel.setSubscription(model.isSubscription());
+		soapModel.setDeliveryGroup(model.getDeliveryGroup());
+		soapModel.setShippingAddressId(model.getShippingAddressId());
+		soapModel.setPrintedNote(model.getPrintedNote());
+		soapModel.setRequestedDeliveryDate(model.getRequestedDeliveryDate());
 
 		return soapModel;
 	}
 
 	public static CommerceOrderItemSoap[] toSoapModels(
 		CommerceOrderItem[] models) {
-		CommerceOrderItemSoap[] soapModels = new CommerceOrderItemSoap[models.length];
+
+		CommerceOrderItemSoap[] soapModels =
+			new CommerceOrderItemSoap[models.length];
 
 		for (int i = 0; i < models.length; i++) {
 			soapModels[i] = toSoapModel(models[i]);
@@ -77,10 +87,12 @@ public class CommerceOrderItemSoap implements Serializable {
 
 	public static CommerceOrderItemSoap[][] toSoapModels(
 		CommerceOrderItem[][] models) {
+
 		CommerceOrderItemSoap[][] soapModels = null;
 
 		if (models.length > 0) {
-			soapModels = new CommerceOrderItemSoap[models.length][models[0].length];
+			soapModels =
+				new CommerceOrderItemSoap[models.length][models[0].length];
 		}
 		else {
 			soapModels = new CommerceOrderItemSoap[0][0];
@@ -95,7 +107,9 @@ public class CommerceOrderItemSoap implements Serializable {
 
 	public static CommerceOrderItemSoap[] toSoapModels(
 		List<CommerceOrderItem> models) {
-		List<CommerceOrderItemSoap> soapModels = new ArrayList<CommerceOrderItemSoap>(models.size());
+
+		List<CommerceOrderItemSoap> soapModels =
+			new ArrayList<CommerceOrderItemSoap>(models.size());
 
 		for (CommerceOrderItem model : models) {
 			soapModels.add(toSoapModel(model));
@@ -271,7 +285,9 @@ public class CommerceOrderItemSoap implements Serializable {
 		return _discountPercentageLevel1;
 	}
 
-	public void setDiscountPercentageLevel1(BigDecimal discountPercentageLevel1) {
+	public void setDiscountPercentageLevel1(
+		BigDecimal discountPercentageLevel1) {
+
 		_discountPercentageLevel1 = discountPercentageLevel1;
 	}
 
@@ -279,7 +295,9 @@ public class CommerceOrderItemSoap implements Serializable {
 		return _discountPercentageLevel2;
 	}
 
-	public void setDiscountPercentageLevel2(BigDecimal discountPercentageLevel2) {
+	public void setDiscountPercentageLevel2(
+		BigDecimal discountPercentageLevel2) {
+
 		_discountPercentageLevel2 = discountPercentageLevel2;
 	}
 
@@ -287,7 +305,9 @@ public class CommerceOrderItemSoap implements Serializable {
 		return _discountPercentageLevel3;
 	}
 
-	public void setDiscountPercentageLevel3(BigDecimal discountPercentageLevel3) {
+	public void setDiscountPercentageLevel3(
+		BigDecimal discountPercentageLevel3) {
+
 		_discountPercentageLevel3 = discountPercentageLevel3;
 	}
 
@@ -295,7 +315,9 @@ public class CommerceOrderItemSoap implements Serializable {
 		return _discountPercentageLevel4;
 	}
 
-	public void setDiscountPercentageLevel4(BigDecimal discountPercentageLevel4) {
+	public void setDiscountPercentageLevel4(
+		BigDecimal discountPercentageLevel4) {
+
 		_discountPercentageLevel4 = discountPercentageLevel4;
 	}
 
@@ -309,6 +331,38 @@ public class CommerceOrderItemSoap implements Serializable {
 
 	public void setSubscription(boolean subscription) {
 		_subscription = subscription;
+	}
+
+	public String getDeliveryGroup() {
+		return _deliveryGroup;
+	}
+
+	public void setDeliveryGroup(String deliveryGroup) {
+		_deliveryGroup = deliveryGroup;
+	}
+
+	public long getShippingAddressId() {
+		return _shippingAddressId;
+	}
+
+	public void setShippingAddressId(long shippingAddressId) {
+		_shippingAddressId = shippingAddressId;
+	}
+
+	public String getPrintedNote() {
+		return _printedNote;
+	}
+
+	public void setPrintedNote(String printedNote) {
+		_printedNote = printedNote;
+	}
+
+	public Date getRequestedDeliveryDate() {
+		return _requestedDeliveryDate;
+	}
+
+	public void setRequestedDeliveryDate(Date requestedDeliveryDate) {
+		_requestedDeliveryDate = requestedDeliveryDate;
 	}
 
 	private String _externalReferenceCode;
@@ -335,4 +389,9 @@ public class CommerceOrderItemSoap implements Serializable {
 	private BigDecimal _discountPercentageLevel3;
 	private BigDecimal _discountPercentageLevel4;
 	private boolean _subscription;
+	private String _deliveryGroup;
+	private long _shippingAddressId;
+	private String _printedNote;
+	private Date _requestedDeliveryDate;
+
 }

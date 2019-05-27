@@ -31,6 +31,9 @@ import com.liferay.portal.kernel.util.StringBundler;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationHandler;
+
 import java.sql.Types;
 
 import java.util.Collections;
@@ -198,6 +201,32 @@ public class ClusterGroupModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
+	}
+
+	private static Function<InvocationHandler, ClusterGroup>
+		_getProxyProviderFunction() {
+
+		Class<?> proxyClass = ProxyUtil.getProxyClass(
+			ClusterGroup.class.getClassLoader(), ClusterGroup.class,
+			ModelWrapper.class);
+
+		try {
+			Constructor<ClusterGroup> constructor =
+				(Constructor<ClusterGroup>)proxyClass.getConstructor(
+					InvocationHandler.class);
+
+			return invocationHandler -> {
+				try {
+					return constructor.newInstance(invocationHandler);
+				}
+				catch (ReflectiveOperationException roe) {
+					throw new InternalError(roe);
+				}
+			};
+		}
+		catch (NoSuchMethodException nsme) {
+			throw new InternalError(nsme);
+		}
 	}
 
 	private static final Map<String, Function<ClusterGroup, Object>>
@@ -407,8 +436,7 @@ public class ClusterGroupModelImpl
 	@Override
 	public ClusterGroup toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = (ClusterGroup)ProxyUtil.newProxyInstance(
-				_classLoader, _escapedModelInterfaces,
+			_escapedModel = _escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -579,11 +607,8 @@ public class ClusterGroupModelImpl
 		return sb.toString();
 	}
 
-	private static final ClassLoader _classLoader =
-		ClusterGroup.class.getClassLoader();
-	private static final Class<?>[] _escapedModelInterfaces = new Class[] {
-		ClusterGroup.class, ModelWrapper.class
-	};
+	private static final Function<InvocationHandler, ClusterGroup>
+		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
 
 	private long _mvccVersion;
 	private long _clusterGroupId;

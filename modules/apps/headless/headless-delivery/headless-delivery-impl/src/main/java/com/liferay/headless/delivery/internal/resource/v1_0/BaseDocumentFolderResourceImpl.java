@@ -25,6 +25,7 @@ import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 import com.liferay.portal.vulcan.util.TransformUtil;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -63,6 +64,9 @@ public abstract class BaseDocumentFolderResourceImpl
 
 	@Override
 	@DELETE
+	@Operation(
+		description = "Deletes the document folder and returns a 204 if the operation succeeds."
+	)
 	@Parameters(
 		value = {@Parameter(in = ParameterIn.PATH, name = "documentFolderId")}
 	)
@@ -77,6 +81,7 @@ public abstract class BaseDocumentFolderResourceImpl
 
 	@Override
 	@GET
+	@Operation(description = "Retrieves the document folder.")
 	@Parameters(
 		value = {@Parameter(in = ParameterIn.PATH, name = "documentFolderId")}
 	)
@@ -93,6 +98,9 @@ public abstract class BaseDocumentFolderResourceImpl
 
 	@Override
 	@Consumes({"application/json", "application/xml"})
+	@Operation(
+		description = "Updates only the fields received in the request body. Any other fields are left untouched."
+	)
 	@PATCH
 	@Parameters(
 		value = {@Parameter(in = ParameterIn.PATH, name = "documentFolderId")}
@@ -108,6 +116,11 @@ public abstract class BaseDocumentFolderResourceImpl
 
 		DocumentFolder existingDocumentFolder = getDocumentFolder(
 			documentFolderId);
+
+		if (documentFolder.getCustomFields() != null) {
+			existingDocumentFolder.setCustomFields(
+				documentFolder.getCustomFields());
+		}
 
 		if (documentFolder.getDateCreated() != null) {
 			existingDocumentFolder.setDateCreated(
@@ -154,6 +167,9 @@ public abstract class BaseDocumentFolderResourceImpl
 
 	@Override
 	@Consumes({"application/json", "application/xml"})
+	@Operation(
+		description = "Replaces the document folder with the information sent in the request body. Any missing fields are deleted, unless they are required."
+	)
 	@PUT
 	@Parameters(
 		value = {@Parameter(in = ParameterIn.PATH, name = "documentFolderId")}
@@ -172,6 +188,9 @@ public abstract class BaseDocumentFolderResourceImpl
 
 	@Override
 	@GET
+	@Operation(
+		description = "Retrieves the folder's subfolders. Results can be paginated, filtered, searched, and sorted."
+	)
 	@Parameters(
 		value = {
 			@Parameter(in = ParameterIn.PATH, name = "parentDocumentFolderId"),
@@ -198,6 +217,9 @@ public abstract class BaseDocumentFolderResourceImpl
 
 	@Override
 	@Consumes({"application/json", "application/xml"})
+	@Operation(
+		description = "Creates a new folder in a folder identified by `parentDocumentFolderId`."
+	)
 	@POST
 	@Parameters(
 		value = {
@@ -218,6 +240,9 @@ public abstract class BaseDocumentFolderResourceImpl
 
 	@Override
 	@GET
+	@Operation(
+		description = "Retrieves the Site's document folders. Results can be paginated, filtered, searched, flattened, and sorted."
+	)
 	@Parameters(
 		value = {
 			@Parameter(in = ParameterIn.PATH, name = "siteId"),
@@ -245,6 +270,7 @@ public abstract class BaseDocumentFolderResourceImpl
 
 	@Override
 	@Consumes({"application/json", "application/xml"})
+	@Operation(description = "Creates a new document folder.")
 	@POST
 	@Parameters(value = {@Parameter(in = ParameterIn.PATH, name = "siteId")})
 	@Path("/sites/{siteId}/document-folders")

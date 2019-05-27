@@ -129,8 +129,9 @@ definition {
 		WebContent.viewTitle(webContentTitle = "WC WebContent Title 1");
 
 		Staging.publishViaSAP(
-			confirmMessage = "Are you sure you want to publish the selected web content?",
-			entry = "WC WebContent Title 1");
+			assetTitle = "WC WebContent Title 1",
+			confirmMessage = "Are you sure you want to publish the selected web content?"
+		);
 
 		ProductMenu.gotoLiveSite();
 
@@ -166,8 +167,9 @@ definition {
 		WebContent.viewTitle(webContentTitle = "WC WebContent Title 2");
 
 		Staging.publishViaSAP(
-			confirmMessage = "Are you sure you want to publish the selected web content?",
-			entry = "WC WebContent Title 2");
+			assetTitle = "WC WebContent Title 2",
+			confirmMessage = "Are you sure you want to publish the selected web content?"
+		);
 
 		ProductMenu.gotoLiveSite();
 

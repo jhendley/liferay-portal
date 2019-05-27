@@ -32,7 +32,7 @@ public class KeywordResourceTest extends BaseKeywordResourceTestCase {
 	}
 
 	@Override
-	protected Keyword randomKeyword() {
+	protected Keyword randomKeyword() throws Exception {
 		Keyword keyword = super.randomKeyword();
 
 		keyword.setName(StringUtil.toLowerCase(keyword.getName()));

@@ -21,34 +21,26 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 
 import com.liferay.headless.delivery.client.dto.v1_0.BlogPosting;
-import com.liferay.headless.delivery.client.dto.v1_0.Rating;
+import com.liferay.headless.delivery.client.http.HttpInvoker;
 import com.liferay.headless.delivery.client.pagination.Page;
+import com.liferay.headless.delivery.client.pagination.Pagination;
+import com.liferay.headless.delivery.client.resource.v1_0.BlogPostingResource;
 import com.liferay.headless.delivery.client.serdes.v1_0.BlogPostingSerDes;
-import com.liferay.headless.delivery.resource.v1_0.BlogPostingResource;
 import com.liferay.petra.string.StringBundler;
-import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
-import com.liferay.portal.kernel.util.ArrayUtil;
-import com.liferay.portal.kernel.util.Base64;
-import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
-import com.liferay.portal.kernel.util.Http;
-import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.odata.entity.EntityField;
 import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
-import com.liferay.portal.vulcan.pagination.Pagination;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
 import java.lang.reflect.InvocationTargetException;
-
-import java.net.URL;
 
 import java.text.DateFormat;
 
@@ -57,19 +49,16 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.annotation.Generated;
 
 import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.BeanUtilsBean;
@@ -106,9 +95,6 @@ public abstract class BaseBlogPostingResourceTestCase {
 		irrelevantGroup = GroupTestUtil.addGroup();
 		testGroup = GroupTestUtil.addGroup();
 		testLocale = LocaleUtil.getDefault();
-
-		_resourceURL = new URL(
-			"http://localhost:8080/o/headless-delivery/v1.0");
 	}
 
 	@After
@@ -162,63 +148,32 @@ public abstract class BaseBlogPostingResourceTestCase {
 	public void testDeleteBlogPosting() throws Exception {
 		BlogPosting blogPosting = testDeleteBlogPosting_addBlogPosting();
 
-		assertResponseCode(
-			204, invokeDeleteBlogPostingResponse(blogPosting.getId()));
+		assertHttpResponseStatusCode(
+			204,
+			BlogPostingResource.deleteBlogPostingHttpResponse(
+				blogPosting.getId()));
 
-		assertResponseCode(
-			404, invokeGetBlogPostingResponse(blogPosting.getId()));
+		assertHttpResponseStatusCode(
+			404,
+			BlogPostingResource.getBlogPostingHttpResponse(
+				blogPosting.getId()));
+
+		assertHttpResponseStatusCode(
+			404, BlogPostingResource.getBlogPostingHttpResponse(0L));
 	}
 
 	protected BlogPosting testDeleteBlogPosting_addBlogPosting()
 		throws Exception {
 
-		return invokePostSiteBlogPosting(
+		return BlogPostingResource.postSiteBlogPosting(
 			testGroup.getGroupId(), randomBlogPosting());
-	}
-
-	protected void invokeDeleteBlogPosting(Long blogPostingId)
-		throws Exception {
-
-		Http.Options options = _createHttpOptions();
-
-		options.setDelete(true);
-
-		String location =
-			_resourceURL +
-				_toPath("/blog-postings/{blogPostingId}", blogPostingId);
-
-		options.setLocation(location);
-
-		String string = HttpUtil.URLtoString(options);
-
-		if (_log.isDebugEnabled()) {
-			_log.debug("HTTP response: " + string);
-		}
-	}
-
-	protected Http.Response invokeDeleteBlogPostingResponse(Long blogPostingId)
-		throws Exception {
-
-		Http.Options options = _createHttpOptions();
-
-		options.setDelete(true);
-
-		String location =
-			_resourceURL +
-				_toPath("/blog-postings/{blogPostingId}", blogPostingId);
-
-		options.setLocation(location);
-
-		HttpUtil.URLtoByteArray(options);
-
-		return options.getResponse();
 	}
 
 	@Test
 	public void testGetBlogPosting() throws Exception {
 		BlogPosting postBlogPosting = testGetBlogPosting_addBlogPosting();
 
-		BlogPosting getBlogPosting = invokeGetBlogPosting(
+		BlogPosting getBlogPosting = BlogPostingResource.getBlogPosting(
 			postBlogPosting.getId());
 
 		assertEquals(postBlogPosting, getBlogPosting);
@@ -226,53 +181,8 @@ public abstract class BaseBlogPostingResourceTestCase {
 	}
 
 	protected BlogPosting testGetBlogPosting_addBlogPosting() throws Exception {
-		return invokePostSiteBlogPosting(
+		return BlogPostingResource.postSiteBlogPosting(
 			testGroup.getGroupId(), randomBlogPosting());
-	}
-
-	protected BlogPosting invokeGetBlogPosting(Long blogPostingId)
-		throws Exception {
-
-		Http.Options options = _createHttpOptions();
-
-		String location =
-			_resourceURL +
-				_toPath("/blog-postings/{blogPostingId}", blogPostingId);
-
-		options.setLocation(location);
-
-		String string = HttpUtil.URLtoString(options);
-
-		if (_log.isDebugEnabled()) {
-			_log.debug("HTTP response: " + string);
-		}
-
-		try {
-			return BlogPostingSerDes.toDTO(string);
-		}
-		catch (Exception e) {
-			if (_log.isDebugEnabled()) {
-				_log.debug("Unable to process HTTP response: " + string, e);
-			}
-
-			throw e;
-		}
-	}
-
-	protected Http.Response invokeGetBlogPostingResponse(Long blogPostingId)
-		throws Exception {
-
-		Http.Options options = _createHttpOptions();
-
-		String location =
-			_resourceURL +
-				_toPath("/blog-postings/{blogPostingId}", blogPostingId);
-
-		options.setLocation(location);
-
-		HttpUtil.URLtoByteArray(options);
-
-		return options.getResponse();
 	}
 
 	@Test
@@ -281,7 +191,7 @@ public abstract class BaseBlogPostingResourceTestCase {
 
 		BlogPosting randomPatchBlogPosting = randomPatchBlogPosting();
 
-		BlogPosting patchBlogPosting = invokePatchBlogPosting(
+		BlogPosting patchBlogPosting = BlogPostingResource.patchBlogPosting(
 			postBlogPosting.getId(), randomPatchBlogPosting);
 
 		BlogPosting expectedPatchBlogPosting = (BlogPosting)BeanUtils.cloneBean(
@@ -290,7 +200,7 @@ public abstract class BaseBlogPostingResourceTestCase {
 		_beanUtilsBean.copyProperties(
 			expectedPatchBlogPosting, randomPatchBlogPosting);
 
-		BlogPosting getBlogPosting = invokeGetBlogPosting(
+		BlogPosting getBlogPosting = BlogPostingResource.getBlogPosting(
 			patchBlogPosting.getId());
 
 		assertEquals(expectedPatchBlogPosting, getBlogPosting);
@@ -300,67 +210,8 @@ public abstract class BaseBlogPostingResourceTestCase {
 	protected BlogPosting testPatchBlogPosting_addBlogPosting()
 		throws Exception {
 
-		return invokePostSiteBlogPosting(
+		return BlogPostingResource.postSiteBlogPosting(
 			testGroup.getGroupId(), randomBlogPosting());
-	}
-
-	protected BlogPosting invokePatchBlogPosting(
-			Long blogPostingId, BlogPosting blogPosting)
-		throws Exception {
-
-		Http.Options options = _createHttpOptions();
-
-		options.setBody(
-			BlogPostingSerDes.toJSON(blogPosting),
-			ContentTypes.APPLICATION_JSON, StringPool.UTF8);
-
-		String location =
-			_resourceURL +
-				_toPath("/blog-postings/{blogPostingId}", blogPostingId);
-
-		options.setLocation(location);
-
-		options.setPatch(true);
-
-		String string = HttpUtil.URLtoString(options);
-
-		if (_log.isDebugEnabled()) {
-			_log.debug("HTTP response: " + string);
-		}
-
-		try {
-			return BlogPostingSerDes.toDTO(string);
-		}
-		catch (Exception e) {
-			if (_log.isDebugEnabled()) {
-				_log.debug("Unable to process HTTP response: " + string, e);
-			}
-
-			throw e;
-		}
-	}
-
-	protected Http.Response invokePatchBlogPostingResponse(
-			Long blogPostingId, BlogPosting blogPosting)
-		throws Exception {
-
-		Http.Options options = _createHttpOptions();
-
-		options.setBody(
-			BlogPostingSerDes.toJSON(blogPosting),
-			ContentTypes.APPLICATION_JSON, StringPool.UTF8);
-
-		String location =
-			_resourceURL +
-				_toPath("/blog-postings/{blogPostingId}", blogPostingId);
-
-		options.setLocation(location);
-
-		options.setPatch(true);
-
-		HttpUtil.URLtoByteArray(options);
-
-		return options.getResponse();
 	}
 
 	@Test
@@ -369,13 +220,13 @@ public abstract class BaseBlogPostingResourceTestCase {
 
 		BlogPosting randomBlogPosting = randomBlogPosting();
 
-		BlogPosting putBlogPosting = invokePutBlogPosting(
+		BlogPosting putBlogPosting = BlogPostingResource.putBlogPosting(
 			postBlogPosting.getId(), randomBlogPosting);
 
 		assertEquals(randomBlogPosting, putBlogPosting);
 		assertValid(putBlogPosting);
 
-		BlogPosting getBlogPosting = invokeGetBlogPosting(
+		BlogPosting getBlogPosting = BlogPostingResource.getBlogPosting(
 			putBlogPosting.getId());
 
 		assertEquals(randomBlogPosting, getBlogPosting);
@@ -383,67 +234,8 @@ public abstract class BaseBlogPostingResourceTestCase {
 	}
 
 	protected BlogPosting testPutBlogPosting_addBlogPosting() throws Exception {
-		return invokePostSiteBlogPosting(
+		return BlogPostingResource.postSiteBlogPosting(
 			testGroup.getGroupId(), randomBlogPosting());
-	}
-
-	protected BlogPosting invokePutBlogPosting(
-			Long blogPostingId, BlogPosting blogPosting)
-		throws Exception {
-
-		Http.Options options = _createHttpOptions();
-
-		options.setBody(
-			BlogPostingSerDes.toJSON(blogPosting),
-			ContentTypes.APPLICATION_JSON, StringPool.UTF8);
-
-		String location =
-			_resourceURL +
-				_toPath("/blog-postings/{blogPostingId}", blogPostingId);
-
-		options.setLocation(location);
-
-		options.setPut(true);
-
-		String string = HttpUtil.URLtoString(options);
-
-		if (_log.isDebugEnabled()) {
-			_log.debug("HTTP response: " + string);
-		}
-
-		try {
-			return BlogPostingSerDes.toDTO(string);
-		}
-		catch (Exception e) {
-			if (_log.isDebugEnabled()) {
-				_log.debug("Unable to process HTTP response: " + string, e);
-			}
-
-			throw e;
-		}
-	}
-
-	protected Http.Response invokePutBlogPostingResponse(
-			Long blogPostingId, BlogPosting blogPosting)
-		throws Exception {
-
-		Http.Options options = _createHttpOptions();
-
-		options.setBody(
-			BlogPostingSerDes.toJSON(blogPosting),
-			ContentTypes.APPLICATION_JSON, StringPool.UTF8);
-
-		String location =
-			_resourceURL +
-				_toPath("/blog-postings/{blogPostingId}", blogPostingId);
-
-		options.setLocation(location);
-
-		options.setPut(true);
-
-		HttpUtil.URLtoByteArray(options);
-
-		return options.getResponse();
 	}
 
 	@Test
@@ -451,59 +243,25 @@ public abstract class BaseBlogPostingResourceTestCase {
 		BlogPosting blogPosting =
 			testDeleteBlogPostingMyRating_addBlogPosting();
 
-		assertResponseCode(
-			204, invokeDeleteBlogPostingMyRatingResponse(blogPosting.getId()));
+		assertHttpResponseStatusCode(
+			204,
+			BlogPostingResource.deleteBlogPostingMyRatingHttpResponse(
+				blogPosting.getId()));
 
-		assertResponseCode(
-			404, invokeGetBlogPostingMyRatingResponse(blogPosting.getId()));
+		assertHttpResponseStatusCode(
+			404,
+			BlogPostingResource.getBlogPostingMyRatingHttpResponse(
+				blogPosting.getId()));
+
+		assertHttpResponseStatusCode(
+			404, BlogPostingResource.getBlogPostingMyRatingHttpResponse(0L));
 	}
 
 	protected BlogPosting testDeleteBlogPostingMyRating_addBlogPosting()
 		throws Exception {
 
-		return invokePostSiteBlogPosting(
+		return BlogPostingResource.postSiteBlogPosting(
 			testGroup.getGroupId(), randomBlogPosting());
-	}
-
-	protected void invokeDeleteBlogPostingMyRating(Long blogPostingId)
-		throws Exception {
-
-		Http.Options options = _createHttpOptions();
-
-		options.setDelete(true);
-
-		String location =
-			_resourceURL +
-				_toPath(
-					"/blog-postings/{blogPostingId}/my-rating", blogPostingId);
-
-		options.setLocation(location);
-
-		String string = HttpUtil.URLtoString(options);
-
-		if (_log.isDebugEnabled()) {
-			_log.debug("HTTP response: " + string);
-		}
-	}
-
-	protected Http.Response invokeDeleteBlogPostingMyRatingResponse(
-			Long blogPostingId)
-		throws Exception {
-
-		Http.Options options = _createHttpOptions();
-
-		options.setDelete(true);
-
-		String location =
-			_resourceURL +
-				_toPath(
-					"/blog-postings/{blogPostingId}/my-rating", blogPostingId);
-
-		options.setLocation(location);
-
-		HttpUtil.URLtoByteArray(options);
-
-		return options.getResponse();
 	}
 
 	@Test
@@ -511,171 +269,14 @@ public abstract class BaseBlogPostingResourceTestCase {
 		Assert.assertTrue(true);
 	}
 
-	protected Rating invokeGetBlogPostingMyRating(Long blogPostingId)
-		throws Exception {
-
-		Http.Options options = _createHttpOptions();
-
-		String location =
-			_resourceURL +
-				_toPath(
-					"/blog-postings/{blogPostingId}/my-rating", blogPostingId);
-
-		options.setLocation(location);
-
-		String string = HttpUtil.URLtoString(options);
-
-		if (_log.isDebugEnabled()) {
-			_log.debug("HTTP response: " + string);
-		}
-
-		try {
-			return com.liferay.headless.delivery.client.serdes.v1_0.
-				RatingSerDes.toDTO(string);
-		}
-		catch (Exception e) {
-			if (_log.isDebugEnabled()) {
-				_log.debug("Unable to process HTTP response: " + string, e);
-			}
-
-			throw e;
-		}
-	}
-
-	protected Http.Response invokeGetBlogPostingMyRatingResponse(
-			Long blogPostingId)
-		throws Exception {
-
-		Http.Options options = _createHttpOptions();
-
-		String location =
-			_resourceURL +
-				_toPath(
-					"/blog-postings/{blogPostingId}/my-rating", blogPostingId);
-
-		options.setLocation(location);
-
-		HttpUtil.URLtoByteArray(options);
-
-		return options.getResponse();
-	}
-
 	@Test
 	public void testPostBlogPostingMyRating() throws Exception {
 		Assert.assertTrue(true);
 	}
 
-	protected Rating invokePostBlogPostingMyRating(
-			Long blogPostingId, Rating rating)
-		throws Exception {
-
-		Http.Options options = _createHttpOptions();
-
-		String location =
-			_resourceURL +
-				_toPath(
-					"/blog-postings/{blogPostingId}/my-rating", blogPostingId);
-
-		options.setLocation(location);
-
-		options.setPost(true);
-
-		String string = HttpUtil.URLtoString(options);
-
-		if (_log.isDebugEnabled()) {
-			_log.debug("HTTP response: " + string);
-		}
-
-		try {
-			return com.liferay.headless.delivery.client.serdes.v1_0.
-				RatingSerDes.toDTO(string);
-		}
-		catch (Exception e) {
-			if (_log.isDebugEnabled()) {
-				_log.debug("Unable to process HTTP response: " + string, e);
-			}
-
-			throw e;
-		}
-	}
-
-	protected Http.Response invokePostBlogPostingMyRatingResponse(
-			Long blogPostingId, Rating rating)
-		throws Exception {
-
-		Http.Options options = _createHttpOptions();
-
-		String location =
-			_resourceURL +
-				_toPath(
-					"/blog-postings/{blogPostingId}/my-rating", blogPostingId);
-
-		options.setLocation(location);
-
-		options.setPost(true);
-
-		HttpUtil.URLtoByteArray(options);
-
-		return options.getResponse();
-	}
-
 	@Test
 	public void testPutBlogPostingMyRating() throws Exception {
 		Assert.assertTrue(true);
-	}
-
-	protected Rating invokePutBlogPostingMyRating(
-			Long blogPostingId, Rating rating)
-		throws Exception {
-
-		Http.Options options = _createHttpOptions();
-
-		String location =
-			_resourceURL +
-				_toPath(
-					"/blog-postings/{blogPostingId}/my-rating", blogPostingId);
-
-		options.setLocation(location);
-
-		options.setPut(true);
-
-		String string = HttpUtil.URLtoString(options);
-
-		if (_log.isDebugEnabled()) {
-			_log.debug("HTTP response: " + string);
-		}
-
-		try {
-			return com.liferay.headless.delivery.client.serdes.v1_0.
-				RatingSerDes.toDTO(string);
-		}
-		catch (Exception e) {
-			if (_log.isDebugEnabled()) {
-				_log.debug("Unable to process HTTP response: " + string, e);
-			}
-
-			throw e;
-		}
-	}
-
-	protected Http.Response invokePutBlogPostingMyRatingResponse(
-			Long blogPostingId, Rating rating)
-		throws Exception {
-
-		Http.Options options = _createHttpOptions();
-
-		String location =
-			_resourceURL +
-				_toPath(
-					"/blog-postings/{blogPostingId}/my-rating", blogPostingId);
-
-		options.setLocation(location);
-
-		options.setPut(true);
-
-		HttpUtil.URLtoByteArray(options);
-
-		return options.getResponse();
 	}
 
 	@Test
@@ -689,8 +290,9 @@ public abstract class BaseBlogPostingResourceTestCase {
 				testGetSiteBlogPostingsPage_addBlogPosting(
 					irrelevantSiteId, randomIrrelevantBlogPosting());
 
-			Page<BlogPosting> page = invokeGetSiteBlogPostingsPage(
-				irrelevantSiteId, null, null, Pagination.of(1, 2), null);
+			Page<BlogPosting> page =
+				BlogPostingResource.getSiteBlogPostingsPage(
+					irrelevantSiteId, null, null, Pagination.of(1, 2), null);
 
 			Assert.assertEquals(1, page.getTotalCount());
 
@@ -706,7 +308,7 @@ public abstract class BaseBlogPostingResourceTestCase {
 		BlogPosting blogPosting2 = testGetSiteBlogPostingsPage_addBlogPosting(
 			siteId, randomBlogPosting());
 
-		Page<BlogPosting> page = invokeGetSiteBlogPostingsPage(
+		Page<BlogPosting> page = BlogPostingResource.getSiteBlogPostingsPage(
 			siteId, null, null, Pagination.of(1, 2), null);
 
 		Assert.assertEquals(2, page.getTotalCount());
@@ -736,10 +338,11 @@ public abstract class BaseBlogPostingResourceTestCase {
 			siteId, blogPosting1);
 
 		for (EntityField entityField : entityFields) {
-			Page<BlogPosting> page = invokeGetSiteBlogPostingsPage(
-				siteId, null,
-				getFilterString(entityField, "between", blogPosting1),
-				Pagination.of(1, 2), null);
+			Page<BlogPosting> page =
+				BlogPostingResource.getSiteBlogPostingsPage(
+					siteId, null,
+					getFilterString(entityField, "between", blogPosting1),
+					Pagination.of(1, 2), null);
 
 			assertEquals(
 				Collections.singletonList(blogPosting1),
@@ -768,9 +371,11 @@ public abstract class BaseBlogPostingResourceTestCase {
 			siteId, randomBlogPosting());
 
 		for (EntityField entityField : entityFields) {
-			Page<BlogPosting> page = invokeGetSiteBlogPostingsPage(
-				siteId, null, getFilterString(entityField, "eq", blogPosting1),
-				Pagination.of(1, 2), null);
+			Page<BlogPosting> page =
+				BlogPostingResource.getSiteBlogPostingsPage(
+					siteId, null,
+					getFilterString(entityField, "eq", blogPosting1),
+					Pagination.of(1, 2), null);
 
 			assertEquals(
 				Collections.singletonList(blogPosting1),
@@ -791,14 +396,14 @@ public abstract class BaseBlogPostingResourceTestCase {
 		BlogPosting blogPosting3 = testGetSiteBlogPostingsPage_addBlogPosting(
 			siteId, randomBlogPosting());
 
-		Page<BlogPosting> page1 = invokeGetSiteBlogPostingsPage(
+		Page<BlogPosting> page1 = BlogPostingResource.getSiteBlogPostingsPage(
 			siteId, null, null, Pagination.of(1, 2), null);
 
 		List<BlogPosting> blogPostings1 = (List<BlogPosting>)page1.getItems();
 
 		Assert.assertEquals(blogPostings1.toString(), 2, blogPostings1.size());
 
-		Page<BlogPosting> page2 = invokeGetSiteBlogPostingsPage(
+		Page<BlogPosting> page2 = BlogPostingResource.getSiteBlogPostingsPage(
 			siteId, null, null, Pagination.of(2, 2), null);
 
 		Assert.assertEquals(3, page2.getTotalCount());
@@ -844,17 +449,19 @@ public abstract class BaseBlogPostingResourceTestCase {
 			siteId, blogPosting2);
 
 		for (EntityField entityField : entityFields) {
-			Page<BlogPosting> ascPage = invokeGetSiteBlogPostingsPage(
-				siteId, null, null, Pagination.of(1, 2),
-				entityField.getName() + ":asc");
+			Page<BlogPosting> ascPage =
+				BlogPostingResource.getSiteBlogPostingsPage(
+					siteId, null, null, Pagination.of(1, 2),
+					entityField.getName() + ":asc");
 
 			assertEquals(
 				Arrays.asList(blogPosting1, blogPosting2),
 				(List<BlogPosting>)ascPage.getItems());
 
-			Page<BlogPosting> descPage = invokeGetSiteBlogPostingsPage(
-				siteId, null, null, Pagination.of(1, 2),
-				entityField.getName() + ":desc");
+			Page<BlogPosting> descPage =
+				BlogPostingResource.getSiteBlogPostingsPage(
+					siteId, null, null, Pagination.of(1, 2),
+					entityField.getName() + ":desc");
 
 			assertEquals(
 				Arrays.asList(blogPosting2, blogPosting1),
@@ -888,17 +495,19 @@ public abstract class BaseBlogPostingResourceTestCase {
 			siteId, blogPosting2);
 
 		for (EntityField entityField : entityFields) {
-			Page<BlogPosting> ascPage = invokeGetSiteBlogPostingsPage(
-				siteId, null, null, Pagination.of(1, 2),
-				entityField.getName() + ":asc");
+			Page<BlogPosting> ascPage =
+				BlogPostingResource.getSiteBlogPostingsPage(
+					siteId, null, null, Pagination.of(1, 2),
+					entityField.getName() + ":asc");
 
 			assertEquals(
 				Arrays.asList(blogPosting1, blogPosting2),
 				(List<BlogPosting>)ascPage.getItems());
 
-			Page<BlogPosting> descPage = invokeGetSiteBlogPostingsPage(
-				siteId, null, null, Pagination.of(1, 2),
-				entityField.getName() + ":desc");
+			Page<BlogPosting> descPage =
+				BlogPostingResource.getSiteBlogPostingsPage(
+					siteId, null, null, Pagination.of(1, 2),
+					entityField.getName() + ":desc");
 
 			assertEquals(
 				Arrays.asList(blogPosting2, blogPosting1),
@@ -910,7 +519,7 @@ public abstract class BaseBlogPostingResourceTestCase {
 			Long siteId, BlogPosting blogPosting)
 		throws Exception {
 
-		return invokePostSiteBlogPosting(siteId, blogPosting);
+		return BlogPostingResource.postSiteBlogPosting(siteId, blogPosting);
 	}
 
 	protected Long testGetSiteBlogPostingsPage_getSiteId() throws Exception {
@@ -921,82 +530,6 @@ public abstract class BaseBlogPostingResourceTestCase {
 		throws Exception {
 
 		return irrelevantGroup.getGroupId();
-	}
-
-	protected Page<BlogPosting> invokeGetSiteBlogPostingsPage(
-			Long siteId, String search, String filterString,
-			Pagination pagination, String sortString)
-		throws Exception {
-
-		Http.Options options = _createHttpOptions();
-
-		String location =
-			_resourceURL + _toPath("/sites/{siteId}/blog-postings", siteId);
-
-		if (search != null) {
-			location = HttpUtil.addParameter(location, "search", search);
-		}
-
-		if (filterString != null) {
-			location = HttpUtil.addParameter(location, "filter", filterString);
-		}
-
-		if (pagination != null) {
-			location = HttpUtil.addParameter(
-				location, "page", pagination.getPage());
-			location = HttpUtil.addParameter(
-				location, "pageSize", pagination.getPageSize());
-		}
-
-		if (sortString != null) {
-			location = HttpUtil.addParameter(location, "sort", sortString);
-		}
-
-		options.setLocation(location);
-
-		String string = HttpUtil.URLtoString(options);
-
-		if (_log.isDebugEnabled()) {
-			_log.debug("HTTP response: " + string);
-		}
-
-		return Page.of(string, BlogPostingSerDes::toDTO);
-	}
-
-	protected Http.Response invokeGetSiteBlogPostingsPageResponse(
-			Long siteId, String search, String filterString,
-			Pagination pagination, String sortString)
-		throws Exception {
-
-		Http.Options options = _createHttpOptions();
-
-		String location =
-			_resourceURL + _toPath("/sites/{siteId}/blog-postings", siteId);
-
-		if (search != null) {
-			location = HttpUtil.addParameter(location, "search", search);
-		}
-
-		if (filterString != null) {
-			location = HttpUtil.addParameter(location, "filter", filterString);
-		}
-
-		if (pagination != null) {
-			location = HttpUtil.addParameter(
-				location, "page", pagination.getPage());
-			location = HttpUtil.addParameter(
-				location, "pageSize", pagination.getPageSize());
-		}
-
-		if (sortString != null) {
-			location = HttpUtil.addParameter(location, "sort", sortString);
-		}
-
-		options.setLocation(location);
-
-		HttpUtil.URLtoByteArray(options);
-
-		return options.getResponse();
 	}
 
 	@Test
@@ -1014,72 +547,16 @@ public abstract class BaseBlogPostingResourceTestCase {
 			BlogPosting blogPosting)
 		throws Exception {
 
-		return invokePostSiteBlogPosting(
+		return BlogPostingResource.postSiteBlogPosting(
 			testGetSiteBlogPostingsPage_getSiteId(), blogPosting);
 	}
 
-	protected BlogPosting invokePostSiteBlogPosting(
-			Long siteId, BlogPosting blogPosting)
-		throws Exception {
-
-		Http.Options options = _createHttpOptions();
-
-		options.setBody(
-			BlogPostingSerDes.toJSON(blogPosting),
-			ContentTypes.APPLICATION_JSON, StringPool.UTF8);
-
-		String location =
-			_resourceURL + _toPath("/sites/{siteId}/blog-postings", siteId);
-
-		options.setLocation(location);
-
-		options.setPost(true);
-
-		String string = HttpUtil.URLtoString(options);
-
-		if (_log.isDebugEnabled()) {
-			_log.debug("HTTP response: " + string);
-		}
-
-		try {
-			return BlogPostingSerDes.toDTO(string);
-		}
-		catch (Exception e) {
-			if (_log.isDebugEnabled()) {
-				_log.debug("Unable to process HTTP response: " + string, e);
-			}
-
-			throw e;
-		}
-	}
-
-	protected Http.Response invokePostSiteBlogPostingResponse(
-			Long siteId, BlogPosting blogPosting)
-		throws Exception {
-
-		Http.Options options = _createHttpOptions();
-
-		options.setBody(
-			BlogPostingSerDes.toJSON(blogPosting),
-			ContentTypes.APPLICATION_JSON, StringPool.UTF8);
-
-		String location =
-			_resourceURL + _toPath("/sites/{siteId}/blog-postings", siteId);
-
-		options.setLocation(location);
-
-		options.setPost(true);
-
-		HttpUtil.URLtoByteArray(options);
-
-		return options.getResponse();
-	}
-
-	protected void assertResponseCode(
-		int expectedResponseCode, Http.Response actualResponse) {
+	protected void assertHttpResponseStatusCode(
+		int expectedHttpResponseStatusCode,
+		HttpInvoker.HttpResponse actualHttpResponse) {
 
 		Assert.assertEquals(
-			expectedResponseCode, actualResponse.getResponseCode());
+			expectedHttpResponseStatusCode, actualHttpResponse.getStatusCode());
 	}
 
 	protected void assertEquals(
@@ -1174,6 +651,14 @@ public abstract class BaseBlogPostingResourceTestCase {
 
 			if (Objects.equals("creator", additionalAssertFieldName)) {
 				if (blogPosting.getCreator() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("customFields", additionalAssertFieldName)) {
+				if (blogPosting.getCustomFields() == null) {
 					valid = false;
 				}
 
@@ -1363,6 +848,17 @@ public abstract class BaseBlogPostingResourceTestCase {
 			if (Objects.equals("creator", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(
 						blogPosting1.getCreator(), blogPosting2.getCreator())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("customFields", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						blogPosting1.getCustomFields(),
+						blogPosting2.getCustomFields())) {
 
 					return false;
 				}
@@ -1616,6 +1112,11 @@ public abstract class BaseBlogPostingResourceTestCase {
 				"Invalid entity field " + entityFieldName);
 		}
 
+		if (entityFieldName.equals("customFields")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
 		if (entityFieldName.equals("dateCreated")) {
 			if (operator.equals("between")) {
 				sb = new StringBundler();
@@ -1795,7 +1296,7 @@ public abstract class BaseBlogPostingResourceTestCase {
 			"Invalid entity field " + entityFieldName);
 	}
 
-	protected BlogPosting randomBlogPosting() {
+	protected BlogPosting randomBlogPosting() throws Exception {
 		return new BlogPosting() {
 			{
 				alternativeHeadline = RandomTestUtil.randomString();
@@ -1813,7 +1314,7 @@ public abstract class BaseBlogPostingResourceTestCase {
 		};
 	}
 
-	protected BlogPosting randomIrrelevantBlogPosting() {
+	protected BlogPosting randomIrrelevantBlogPosting() throws Exception {
 		BlogPosting randomIrrelevantBlogPosting = randomBlogPosting();
 
 		randomIrrelevantBlogPosting.setSiteId(irrelevantGroup.getGroupId());
@@ -1821,81 +1322,14 @@ public abstract class BaseBlogPostingResourceTestCase {
 		return randomIrrelevantBlogPosting;
 	}
 
-	protected BlogPosting randomPatchBlogPosting() {
+	protected BlogPosting randomPatchBlogPosting() throws Exception {
 		return randomBlogPosting();
 	}
 
 	protected Group irrelevantGroup;
-	protected String testContentType = "application/json";
 	protected Group testGroup;
 	protected Locale testLocale;
 	protected String testUserNameAndPassword = "test@liferay.com:test";
-
-	private Http.Options _createHttpOptions() {
-		Http.Options options = new Http.Options();
-
-		options.addHeader("Accept", "application/json");
-		options.addHeader(
-			"Accept-Language", LocaleUtil.toW3cLanguageId(testLocale));
-
-		String encodedTestUserNameAndPassword = Base64.encode(
-			testUserNameAndPassword.getBytes());
-
-		options.addHeader(
-			"Authorization", "Basic " + encodedTestUserNameAndPassword);
-
-		options.addHeader("Content-Type", testContentType);
-
-		return options;
-	}
-
-	private String _toJSON(Map<String, String> map) {
-		if (map == null) {
-			return "null";
-		}
-
-		StringBuilder sb = new StringBuilder();
-
-		sb.append("{");
-
-		Set<Map.Entry<String, String>> set = map.entrySet();
-
-		Iterator<Map.Entry<String, String>> iterator = set.iterator();
-
-		while (iterator.hasNext()) {
-			Map.Entry<String, String> entry = iterator.next();
-
-			sb.append("\"" + entry.getKey() + "\": ");
-
-			if (entry.getValue() == null) {
-				sb.append("null");
-			}
-			else {
-				sb.append("\"" + entry.getValue() + "\"");
-			}
-
-			if (iterator.hasNext()) {
-				sb.append(", ");
-			}
-		}
-
-		sb.append("}");
-
-		return sb.toString();
-	}
-
-	private String _toPath(String template, Object... values) {
-		if (ArrayUtil.isEmpty(values)) {
-			return template;
-		}
-
-		for (int i = 0; i < values.length; i++) {
-			template = template.replaceFirst(
-				"\\{.*?\\}", String.valueOf(values[i]));
-		}
-
-		return template;
-	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		BaseBlogPostingResourceTestCase.class);
@@ -1915,8 +1349,7 @@ public abstract class BaseBlogPostingResourceTestCase {
 	private static DateFormat _dateFormat;
 
 	@Inject
-	private BlogPostingResource _blogPostingResource;
-
-	private URL _resourceURL;
+	private com.liferay.headless.delivery.resource.v1_0.BlogPostingResource
+		_blogPostingResource;
 
 }

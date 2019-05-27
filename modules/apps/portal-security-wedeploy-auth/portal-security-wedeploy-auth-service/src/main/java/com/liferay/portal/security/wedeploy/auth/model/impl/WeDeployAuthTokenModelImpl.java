@@ -34,6 +34,9 @@ import com.liferay.portal.security.wedeploy.auth.model.WeDeployAuthTokenModel;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationHandler;
+
 import java.sql.Types;
 
 import java.util.Collections;
@@ -220,6 +223,32 @@ public class WeDeployAuthTokenModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
+	}
+
+	private static Function<InvocationHandler, WeDeployAuthToken>
+		_getProxyProviderFunction() {
+
+		Class<?> proxyClass = ProxyUtil.getProxyClass(
+			WeDeployAuthToken.class.getClassLoader(), WeDeployAuthToken.class,
+			ModelWrapper.class);
+
+		try {
+			Constructor<WeDeployAuthToken> constructor =
+				(Constructor<WeDeployAuthToken>)proxyClass.getConstructor(
+					InvocationHandler.class);
+
+			return invocationHandler -> {
+				try {
+					return constructor.newInstance(invocationHandler);
+				}
+				catch (ReflectiveOperationException roe) {
+					throw new InternalError(roe);
+				}
+			};
+		}
+		catch (NoSuchMethodException nsme) {
+			throw new InternalError(nsme);
+		}
 	}
 
 	private static final Map<String, Function<WeDeployAuthToken, Object>>
@@ -622,8 +651,7 @@ public class WeDeployAuthTokenModelImpl
 	@Override
 	public WeDeployAuthToken toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = (WeDeployAuthToken)ProxyUtil.newProxyInstance(
-				_classLoader, _escapedModelInterfaces,
+			_escapedModel = _escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -844,11 +872,8 @@ public class WeDeployAuthTokenModelImpl
 		return sb.toString();
 	}
 
-	private static final ClassLoader _classLoader =
-		WeDeployAuthToken.class.getClassLoader();
-	private static final Class<?>[] _escapedModelInterfaces = new Class[] {
-		WeDeployAuthToken.class, ModelWrapper.class
-	};
+	private static final Function<InvocationHandler, WeDeployAuthToken>
+		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
 
 	private long _weDeployAuthTokenId;
 	private long _companyId;

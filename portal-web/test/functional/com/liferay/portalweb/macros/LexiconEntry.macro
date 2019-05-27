@@ -34,7 +34,7 @@ definition {
 				AssertTextEquals(locator1 = "Message#ERROR_2", value1 = "${failure}");
 			}
 			else {
-				AssertTextEquals(locator1 = "Message#ERROR", value1 = "${failure}");
+				AssertTextEquals.assertPartialText(locator1 = "Message#ERROR", value1 = "${failure}");
 			}
 		}
 		else {

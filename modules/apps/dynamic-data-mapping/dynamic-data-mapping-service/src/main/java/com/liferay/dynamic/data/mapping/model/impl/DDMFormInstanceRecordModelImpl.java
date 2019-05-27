@@ -38,6 +38,9 @@ import com.liferay.portal.kernel.util.StringBundler;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationHandler;
+
 import java.sql.Types;
 
 import java.util.ArrayList;
@@ -301,6 +304,32 @@ public class DDMFormInstanceRecordModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
+	}
+
+	private static Function<InvocationHandler, DDMFormInstanceRecord>
+		_getProxyProviderFunction() {
+
+		Class<?> proxyClass = ProxyUtil.getProxyClass(
+			DDMFormInstanceRecord.class.getClassLoader(),
+			DDMFormInstanceRecord.class, ModelWrapper.class);
+
+		try {
+			Constructor<DDMFormInstanceRecord> constructor =
+				(Constructor<DDMFormInstanceRecord>)proxyClass.getConstructor(
+					InvocationHandler.class);
+
+			return invocationHandler -> {
+				try {
+					return constructor.newInstance(invocationHandler);
+				}
+				catch (ReflectiveOperationException roe) {
+					throw new InternalError(roe);
+				}
+			};
+		}
+		catch (NoSuchMethodException nsme) {
+			throw new InternalError(nsme);
+		}
 	}
 
 	private static final Map<String, Function<DDMFormInstanceRecord, Object>>
@@ -1027,8 +1056,7 @@ public class DDMFormInstanceRecordModelImpl
 	@Override
 	public DDMFormInstanceRecord toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = (DDMFormInstanceRecord)ProxyUtil.newProxyInstance(
-				_classLoader, _escapedModelInterfaces,
+			_escapedModel = _escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -1313,11 +1341,8 @@ public class DDMFormInstanceRecordModelImpl
 		return sb.toString();
 	}
 
-	private static final ClassLoader _classLoader =
-		DDMFormInstanceRecord.class.getClassLoader();
-	private static final Class<?>[] _escapedModelInterfaces = new Class[] {
-		DDMFormInstanceRecord.class, ModelWrapper.class
-	};
+	private static final Function<InvocationHandler, DDMFormInstanceRecord>
+		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
 
 	private String _uuid;
 	private String _originalUuid;

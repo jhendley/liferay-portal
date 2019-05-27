@@ -107,6 +107,8 @@ public class JournalArticleDDMStructureIndexer
 					ddmStructureLocalService.getDDMStructure(ddmStructureId);
 
 				ddmStructureKeys[i] = ddmStructure.getStructureKey();
+
+				doReindex(ddmStructure);
 			}
 
 			ActionableDynamicQuery actionableDynamicQuery =

@@ -34,6 +34,9 @@ import com.liferay.portal.workflow.kaleo.model.KaleoTimerInstanceTokenModel;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationHandler;
+
 import java.sql.Types;
 
 import java.util.Collections;
@@ -245,6 +248,32 @@ public class KaleoTimerInstanceTokenModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
+	}
+
+	private static Function<InvocationHandler, KaleoTimerInstanceToken>
+		_getProxyProviderFunction() {
+
+		Class<?> proxyClass = ProxyUtil.getProxyClass(
+			KaleoTimerInstanceToken.class.getClassLoader(),
+			KaleoTimerInstanceToken.class, ModelWrapper.class);
+
+		try {
+			Constructor<KaleoTimerInstanceToken> constructor =
+				(Constructor<KaleoTimerInstanceToken>)proxyClass.getConstructor(
+					InvocationHandler.class);
+
+			return invocationHandler -> {
+				try {
+					return constructor.newInstance(invocationHandler);
+				}
+				catch (ReflectiveOperationException roe) {
+					throw new InternalError(roe);
+				}
+			};
+		}
+		catch (NoSuchMethodException nsme) {
+			throw new InternalError(nsme);
+		}
 	}
 
 	private static final Map<String, Function<KaleoTimerInstanceToken, Object>>
@@ -1134,8 +1163,7 @@ public class KaleoTimerInstanceTokenModelImpl
 	@Override
 	public KaleoTimerInstanceToken toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = (KaleoTimerInstanceToken)ProxyUtil.newProxyInstance(
-				_classLoader, _escapedModelInterfaces,
+			_escapedModel = _escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -1446,11 +1474,8 @@ public class KaleoTimerInstanceTokenModelImpl
 		return sb.toString();
 	}
 
-	private static final ClassLoader _classLoader =
-		KaleoTimerInstanceToken.class.getClassLoader();
-	private static final Class<?>[] _escapedModelInterfaces = new Class[] {
-		KaleoTimerInstanceToken.class, ModelWrapper.class
-	};
+	private static final Function<InvocationHandler, KaleoTimerInstanceToken>
+		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
 
 	private long _kaleoTimerInstanceTokenId;
 	private long _groupId;

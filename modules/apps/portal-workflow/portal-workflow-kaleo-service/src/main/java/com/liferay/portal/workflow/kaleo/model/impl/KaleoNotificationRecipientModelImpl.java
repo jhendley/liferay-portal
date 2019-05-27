@@ -34,6 +34,9 @@ import com.liferay.portal.workflow.kaleo.model.KaleoNotificationRecipientModel;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationHandler;
+
 import java.sql.Types;
 
 import java.util.Collections;
@@ -238,6 +241,32 @@ public class KaleoNotificationRecipientModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
+	}
+
+	private static Function<InvocationHandler, KaleoNotificationRecipient>
+		_getProxyProviderFunction() {
+
+		Class<?> proxyClass = ProxyUtil.getProxyClass(
+			KaleoNotificationRecipient.class.getClassLoader(),
+			KaleoNotificationRecipient.class, ModelWrapper.class);
+
+		try {
+			Constructor<KaleoNotificationRecipient> constructor =
+				(Constructor<KaleoNotificationRecipient>)
+					proxyClass.getConstructor(InvocationHandler.class);
+
+			return invocationHandler -> {
+				try {
+					return constructor.newInstance(invocationHandler);
+				}
+				catch (ReflectiveOperationException roe) {
+					throw new InternalError(roe);
+				}
+			};
+		}
+		catch (NoSuchMethodException nsme) {
+			throw new InternalError(nsme);
+		}
 	}
 
 	private static final Map
@@ -993,10 +1022,8 @@ public class KaleoNotificationRecipientModelImpl
 	@Override
 	public KaleoNotificationRecipient toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel =
-				(KaleoNotificationRecipient)ProxyUtil.newProxyInstance(
-					_classLoader, _escapedModelInterfaces,
-					new AutoEscapeBeanHandler(this));
+			_escapedModel = _escapedModelProxyProviderFunction.apply(
+				new AutoEscapeBeanHandler(this));
 		}
 
 		return _escapedModel;
@@ -1324,11 +1351,8 @@ public class KaleoNotificationRecipientModelImpl
 		return sb.toString();
 	}
 
-	private static final ClassLoader _classLoader =
-		KaleoNotificationRecipient.class.getClassLoader();
-	private static final Class<?>[] _escapedModelInterfaces = new Class[] {
-		KaleoNotificationRecipient.class, ModelWrapper.class
-	};
+	private static final Function<InvocationHandler, KaleoNotificationRecipient>
+		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
 
 	private long _kaleoNotificationRecipientId;
 	private long _groupId;

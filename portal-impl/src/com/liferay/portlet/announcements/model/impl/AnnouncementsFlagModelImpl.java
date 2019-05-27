@@ -37,6 +37,9 @@ import com.liferay.portal.kernel.util.StringBundler;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationHandler;
+
 import java.sql.Types;
 
 import java.util.ArrayList;
@@ -266,6 +269,32 @@ public class AnnouncementsFlagModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
+	}
+
+	private static Function<InvocationHandler, AnnouncementsFlag>
+		_getProxyProviderFunction() {
+
+		Class<?> proxyClass = ProxyUtil.getProxyClass(
+			AnnouncementsFlag.class.getClassLoader(), AnnouncementsFlag.class,
+			ModelWrapper.class);
+
+		try {
+			Constructor<AnnouncementsFlag> constructor =
+				(Constructor<AnnouncementsFlag>)proxyClass.getConstructor(
+					InvocationHandler.class);
+
+			return invocationHandler -> {
+				try {
+					return constructor.newInstance(invocationHandler);
+				}
+				catch (ReflectiveOperationException roe) {
+					throw new InternalError(roe);
+				}
+			};
+		}
+		catch (NoSuchMethodException nsme) {
+			throw new InternalError(nsme);
+		}
 	}
 
 	private static final Map<String, Function<AnnouncementsFlag, Object>>
@@ -561,8 +590,7 @@ public class AnnouncementsFlagModelImpl
 	@Override
 	public AnnouncementsFlag toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = (AnnouncementsFlag)ProxyUtil.newProxyInstance(
-				_classLoader, _escapedModelInterfaces,
+			_escapedModel = _escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -763,11 +791,8 @@ public class AnnouncementsFlagModelImpl
 		return sb.toString();
 	}
 
-	private static final ClassLoader _classLoader =
-		AnnouncementsFlag.class.getClassLoader();
-	private static final Class<?>[] _escapedModelInterfaces = new Class[] {
-		AnnouncementsFlag.class, ModelWrapper.class
-	};
+	private static final Function<InvocationHandler, AnnouncementsFlag>
+		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
 
 	private long _flagId;
 	private long _companyId;

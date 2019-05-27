@@ -33,6 +33,9 @@ import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationHandler;
+
 import java.sql.Types;
 
 import java.util.Collections;
@@ -213,6 +216,32 @@ public class FriendlyURLEntryMappingModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
+	}
+
+	private static Function<InvocationHandler, FriendlyURLEntryMapping>
+		_getProxyProviderFunction() {
+
+		Class<?> proxyClass = ProxyUtil.getProxyClass(
+			FriendlyURLEntryMapping.class.getClassLoader(),
+			FriendlyURLEntryMapping.class, ModelWrapper.class);
+
+		try {
+			Constructor<FriendlyURLEntryMapping> constructor =
+				(Constructor<FriendlyURLEntryMapping>)proxyClass.getConstructor(
+					InvocationHandler.class);
+
+			return invocationHandler -> {
+				try {
+					return constructor.newInstance(invocationHandler);
+				}
+				catch (ReflectiveOperationException roe) {
+					throw new InternalError(roe);
+				}
+			};
+		}
+		catch (NoSuchMethodException nsme) {
+			throw new InternalError(nsme);
+		}
 	}
 
 	private static final Map<String, Function<FriendlyURLEntryMapping, Object>>
@@ -480,8 +509,7 @@ public class FriendlyURLEntryMappingModelImpl
 	@Override
 	public FriendlyURLEntryMapping toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = (FriendlyURLEntryMapping)ProxyUtil.newProxyInstance(
-				_classLoader, _escapedModelInterfaces,
+			_escapedModel = _escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -662,11 +690,8 @@ public class FriendlyURLEntryMappingModelImpl
 		return sb.toString();
 	}
 
-	private static final ClassLoader _classLoader =
-		FriendlyURLEntryMapping.class.getClassLoader();
-	private static final Class<?>[] _escapedModelInterfaces = new Class[] {
-		FriendlyURLEntryMapping.class, ModelWrapper.class
-	};
+	private static final Function<InvocationHandler, FriendlyURLEntryMapping>
+		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
 
 	private long _mvccVersion;
 	private long _friendlyURLEntryMappingId;

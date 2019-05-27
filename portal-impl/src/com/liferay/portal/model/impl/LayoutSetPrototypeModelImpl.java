@@ -42,6 +42,9 @@ import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationHandler;
+
 import java.sql.Types;
 
 import java.util.ArrayList;
@@ -290,6 +293,32 @@ public class LayoutSetPrototypeModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
+	}
+
+	private static Function<InvocationHandler, LayoutSetPrototype>
+		_getProxyProviderFunction() {
+
+		Class<?> proxyClass = ProxyUtil.getProxyClass(
+			LayoutSetPrototype.class.getClassLoader(), LayoutSetPrototype.class,
+			ModelWrapper.class);
+
+		try {
+			Constructor<LayoutSetPrototype> constructor =
+				(Constructor<LayoutSetPrototype>)proxyClass.getConstructor(
+					InvocationHandler.class);
+
+			return invocationHandler -> {
+				try {
+					return constructor.newInstance(invocationHandler);
+				}
+				catch (ReflectiveOperationException roe) {
+					throw new InternalError(roe);
+				}
+			};
+		}
+		catch (NoSuchMethodException nsme) {
+			throw new InternalError(nsme);
+		}
 	}
 
 	private static final Map<String, Function<LayoutSetPrototype, Object>>
@@ -1093,8 +1122,7 @@ public class LayoutSetPrototypeModelImpl
 	@Override
 	public LayoutSetPrototype toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = (LayoutSetPrototype)ProxyUtil.newProxyInstance(
-				_classLoader, _escapedModelInterfaces,
+			_escapedModel = _escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -1339,11 +1367,8 @@ public class LayoutSetPrototypeModelImpl
 		return sb.toString();
 	}
 
-	private static final ClassLoader _classLoader =
-		LayoutSetPrototype.class.getClassLoader();
-	private static final Class<?>[] _escapedModelInterfaces = new Class[] {
-		LayoutSetPrototype.class, ModelWrapper.class
-	};
+	private static final Function<InvocationHandler, LayoutSetPrototype>
+		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
 
 	private long _mvccVersion;
 	private String _uuid;

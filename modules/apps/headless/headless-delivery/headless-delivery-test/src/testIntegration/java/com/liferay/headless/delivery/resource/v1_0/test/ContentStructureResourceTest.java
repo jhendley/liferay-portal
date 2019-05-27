@@ -23,7 +23,6 @@ import com.liferay.dynamic.data.mapping.storage.StorageType;
 import com.liferay.dynamic.data.mapping.test.util.DDMStructureTestHelper;
 import com.liferay.headless.delivery.client.dto.v1_0.ContentStructure;
 import com.liferay.journal.model.JournalArticle;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
@@ -82,7 +81,7 @@ public class ContentStructureResourceTest
 			StorageType.JSON.getValue(), DDMStructureConstants.TYPE_DEFAULT);
 	}
 
-	private DDMForm _deserialize(String content) throws PortalException {
+	private DDMForm _deserialize(String content) throws Exception {
 		return _ddmFormJSONDeserializer.deserialize(content);
 	}
 

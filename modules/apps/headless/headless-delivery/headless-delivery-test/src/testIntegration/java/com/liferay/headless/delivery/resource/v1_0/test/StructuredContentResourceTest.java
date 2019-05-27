@@ -23,10 +23,10 @@ import com.liferay.dynamic.data.mapping.storage.StorageType;
 import com.liferay.dynamic.data.mapping.test.util.DDMStructureTestHelper;
 import com.liferay.dynamic.data.mapping.test.util.DDMTemplateTestUtil;
 import com.liferay.headless.delivery.client.dto.v1_0.StructuredContent;
+import com.liferay.headless.delivery.client.resource.v1_0.StructuredContentResource;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.model.JournalFolder;
 import com.liferay.journal.test.util.JournalTestUtil;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.template.TemplateConstants;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
@@ -42,6 +42,7 @@ import java.io.InputStream;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -85,12 +86,14 @@ public class StructuredContentResourceTest
 		super.tearDown();
 	}
 
+	@Ignore
 	@Test
 	public void testGetSiteStructuredContentWithDifferentLocale()
 		throws Exception {
 
-		StructuredContent structuredContent = invokePostSiteStructuredContent(
-			testGroup.getGroupId(), randomStructuredContent());
+		StructuredContent structuredContent =
+			StructuredContentResource.postSiteStructuredContent(
+				testGroup.getGroupId(), randomStructuredContent());
 
 		String title = structuredContent.getTitle();
 
@@ -100,17 +103,17 @@ public class StructuredContentResourceTest
 
 		structuredContent.setTitle(frenchTitle);
 
-		invokePutStructuredContent(
+		StructuredContentResource.putStructuredContent(
 			structuredContent.getId(), structuredContent);
 
-		structuredContent = invokeGetStructuredContent(
+		structuredContent = StructuredContentResource.getStructuredContent(
 			structuredContent.getId());
 
 		Assert.assertEquals(frenchTitle, structuredContent.getTitle());
 
 		testLocale = LocaleUtil.getDefault();
 
-		structuredContent = invokeGetStructuredContent(
+		structuredContent = StructuredContentResource.getStructuredContent(
 			structuredContent.getId());
 
 		Assert.assertEquals(title, structuredContent.getTitle());
@@ -122,7 +125,9 @@ public class StructuredContentResourceTest
 	}
 
 	@Override
-	protected StructuredContent randomIrrelevantStructuredContent() {
+	protected StructuredContent randomIrrelevantStructuredContent()
+		throws Exception {
+
 		StructuredContent structuredContent = randomStructuredContent();
 
 		structuredContent.setContentStructureId(
@@ -132,7 +137,7 @@ public class StructuredContentResourceTest
 	}
 
 	@Override
-	protected StructuredContent randomStructuredContent() {
+	protected StructuredContent randomStructuredContent() throws Exception {
 		StructuredContent structuredContent = super.randomStructuredContent();
 
 		structuredContent.setContentStructureId(_ddmStructure.getStructureId());
@@ -146,7 +151,7 @@ public class StructuredContentResourceTest
 				Long contentStructureId, StructuredContent structuredContent)
 		throws Exception {
 
-		return invokePostSiteStructuredContent(
+		return StructuredContentResource.postSiteStructuredContent(
 			testGroup.getGroupId(), structuredContent);
 	}
 
@@ -192,7 +197,7 @@ public class StructuredContentResourceTest
 		return ddmStructure;
 	}
 
-	private DDMForm _deserialize(String content) throws PortalException {
+	private DDMForm _deserialize(String content) throws Exception {
 		return _ddmFormJSONDeserializer.deserialize(content);
 	}
 

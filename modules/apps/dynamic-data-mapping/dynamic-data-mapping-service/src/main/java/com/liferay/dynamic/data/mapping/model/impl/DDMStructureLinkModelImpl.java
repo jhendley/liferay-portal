@@ -33,6 +33,9 @@ import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationHandler;
+
 import java.sql.Types;
 
 import java.util.Collections;
@@ -211,6 +214,32 @@ public class DDMStructureLinkModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
+	}
+
+	private static Function<InvocationHandler, DDMStructureLink>
+		_getProxyProviderFunction() {
+
+		Class<?> proxyClass = ProxyUtil.getProxyClass(
+			DDMStructureLink.class.getClassLoader(), DDMStructureLink.class,
+			ModelWrapper.class);
+
+		try {
+			Constructor<DDMStructureLink> constructor =
+				(Constructor<DDMStructureLink>)proxyClass.getConstructor(
+					InvocationHandler.class);
+
+			return invocationHandler -> {
+				try {
+					return constructor.newInstance(invocationHandler);
+				}
+				catch (ReflectiveOperationException roe) {
+					throw new InternalError(roe);
+				}
+			};
+		}
+		catch (NoSuchMethodException nsme) {
+			throw new InternalError(nsme);
+		}
 	}
 
 	private static final Map<String, Function<DDMStructureLink, Object>>
@@ -469,8 +498,7 @@ public class DDMStructureLinkModelImpl
 	@Override
 	public DDMStructureLink toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = (DDMStructureLink)ProxyUtil.newProxyInstance(
-				_classLoader, _escapedModelInterfaces,
+			_escapedModel = _escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -647,11 +675,8 @@ public class DDMStructureLinkModelImpl
 		return sb.toString();
 	}
 
-	private static final ClassLoader _classLoader =
-		DDMStructureLink.class.getClassLoader();
-	private static final Class<?>[] _escapedModelInterfaces = new Class[] {
-		DDMStructureLink.class, ModelWrapper.class
-	};
+	private static final Function<InvocationHandler, DDMStructureLink>
+		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
 
 	private long _structureLinkId;
 	private long _companyId;

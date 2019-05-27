@@ -34,6 +34,9 @@ import com.liferay.portal.kernel.util.StringBundler;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationHandler;
+
 import java.sql.Types;
 
 import java.util.Collections;
@@ -211,6 +214,31 @@ public class StatusModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
+	}
+
+	private static Function<InvocationHandler, Status>
+		_getProxyProviderFunction() {
+
+		Class<?> proxyClass = ProxyUtil.getProxyClass(
+			Status.class.getClassLoader(), Status.class, ModelWrapper.class);
+
+		try {
+			Constructor<Status> constructor =
+				(Constructor<Status>)proxyClass.getConstructor(
+					InvocationHandler.class);
+
+			return invocationHandler -> {
+				try {
+					return constructor.newInstance(invocationHandler);
+				}
+				catch (ReflectiveOperationException roe) {
+					throw new InternalError(roe);
+				}
+			};
+		}
+		catch (NoSuchMethodException nsme) {
+			throw new InternalError(nsme);
+		}
 	}
 
 	private static final Map<String, Function<Status, Object>>
@@ -568,8 +596,7 @@ public class StatusModelImpl
 	@Override
 	public Status toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = (Status)ProxyUtil.newProxyInstance(
-				_classLoader, _escapedModelInterfaces,
+			_escapedModel = _escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -761,11 +788,8 @@ public class StatusModelImpl
 		return sb.toString();
 	}
 
-	private static final ClassLoader _classLoader =
-		Status.class.getClassLoader();
-	private static final Class<?>[] _escapedModelInterfaces = new Class[] {
-		Status.class, ModelWrapper.class
-	};
+	private static final Function<InvocationHandler, Status>
+		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
 
 	private long _statusId;
 	private long _userId;

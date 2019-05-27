@@ -84,10 +84,15 @@
 				{sp}with-select
 			{/if}
 		{/if}
+
+		{if (isNonnull($accountId) and isNonnull($disabled) and $disabled == false) == false }
+			{sp}commerce-button--disabled
+		{/if}
 	{/let}
 
 	<div
 			class="{$btnClass}"
+			data-add-more-label="{msg desc="Add more"}add-more{/msg}"
 			data-onclick="{$_handleBtnClick}"
 			data-onfocus="{$_handleBtnFocus}"
 			data-onfocusin="{$_handleBtnFocusin}"
@@ -107,7 +112,7 @@
 				{/let}
 
 				<div class="{$quantityChanged}">
-					<span class="added-quantity">{msg desc="in cart"}items added{/msg}</span>
+					<span class="added-quantity">{msg desc="Items added"}items-added{/msg}</span>
 				</div>
 			{/if}
 		{else}
@@ -121,6 +126,7 @@
 				{param maxQuantity: $settings.maxQuantity /}
 				{param multipleQuantity: $settings.multipleQuantity /}
 				{param allowedQuantities: $settings.allowedQuantities /}
+				{param disabled: $disabled /}
 			{/call}
 
 			<div
@@ -174,6 +180,10 @@
 		{if $editMode == true}
 			{sp}add-to-cart-button--inline--edit
 		{/if}
+
+		{if (isNonnull($accountId) and (isNonnull($disabled) and $disabled == false)) == false }
+			{sp}commerce-button--disabled
+		{/if}
 	{/let}
 
 	<div class="add-to-cart-button--inline">
@@ -187,15 +197,17 @@
 			{param maxQuantity: $settings.maxQuantity /}
 			{param multipleQuantity: $settings.multipleQuantity /}
 			{param allowedQuantities: $settings.allowedQuantities /}
+			{param disabled: $disabled /}
 		{/call}
 
 		<div
 			class="{$btnClass}"
-			tabindex="0"
+			data-add-more-label="{msg desc="Add more"}add-more{/msg}"
 			data-onclick="{$_handleSubmitClick}"
 			data-onfocus="{$_handleBtnFocus}"
 			data-onfocusin="{$_handleBtnFocusin}"
 			data-onfocusout="{$_handleBtnFocusout}"
+			tabindex="0"
 		>
 			{if $hasQuantityChanged == false }
 				{msg desc="Add to cart"}add-to-cart{/msg}

@@ -33,6 +33,9 @@ import com.liferay.portal.kernel.util.StringBundler;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationHandler;
+
 import java.sql.Types;
 
 import java.util.ArrayList;
@@ -266,6 +269,32 @@ public class ResourceBlockModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
+	}
+
+	private static Function<InvocationHandler, ResourceBlock>
+		_getProxyProviderFunction() {
+
+		Class<?> proxyClass = ProxyUtil.getProxyClass(
+			ResourceBlock.class.getClassLoader(), ResourceBlock.class,
+			ModelWrapper.class);
+
+		try {
+			Constructor<ResourceBlock> constructor =
+				(Constructor<ResourceBlock>)proxyClass.getConstructor(
+					InvocationHandler.class);
+
+			return invocationHandler -> {
+				try {
+					return constructor.newInstance(invocationHandler);
+				}
+				catch (ReflectiveOperationException roe) {
+					throw new InternalError(roe);
+				}
+			};
+		}
+		catch (NoSuchMethodException nsme) {
+			throw new InternalError(nsme);
+		}
 	}
 
 	private static final Map<String, Function<ResourceBlock, Object>>
@@ -589,8 +618,7 @@ public class ResourceBlockModelImpl
 	@Override
 	public ResourceBlock toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = (ResourceBlock)ProxyUtil.newProxyInstance(
-				_classLoader, _escapedModelInterfaces,
+			_escapedModel = _escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -785,11 +813,8 @@ public class ResourceBlockModelImpl
 		return sb.toString();
 	}
 
-	private static final ClassLoader _classLoader =
-		ResourceBlock.class.getClassLoader();
-	private static final Class<?>[] _escapedModelInterfaces = new Class[] {
-		ResourceBlock.class, ModelWrapper.class
-	};
+	private static final Function<InvocationHandler, ResourceBlock>
+		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
 
 	private long _mvccVersion;
 	private long _resourceBlockId;

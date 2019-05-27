@@ -26,6 +26,7 @@ import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 import com.liferay.portal.vulcan.util.TransformUtil;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -64,6 +65,9 @@ public abstract class BaseBlogPostingResourceImpl
 
 	@Override
 	@DELETE
+	@Operation(
+		description = "Deletes the blog post and returns a 204 if the operation succeeds."
+	)
 	@Parameters(
 		value = {@Parameter(in = ParameterIn.PATH, name = "blogPostingId")}
 	)
@@ -78,6 +82,7 @@ public abstract class BaseBlogPostingResourceImpl
 
 	@Override
 	@GET
+	@Operation(description = "Retrieves the blog post.")
 	@Parameters(
 		value = {@Parameter(in = ParameterIn.PATH, name = "blogPostingId")}
 	)
@@ -94,6 +99,9 @@ public abstract class BaseBlogPostingResourceImpl
 
 	@Override
 	@Consumes({"application/json", "application/xml"})
+	@Operation(
+		description = "Updates the blog post using only the fields received in the request body. Any other fields are left untouched. Returns the updated blog post."
+	)
 	@PATCH
 	@Parameters(
 		value = {@Parameter(in = ParameterIn.PATH, name = "blogPostingId")}
@@ -116,6 +124,10 @@ public abstract class BaseBlogPostingResourceImpl
 
 		if (blogPosting.getArticleBody() != null) {
 			existingBlogPosting.setArticleBody(blogPosting.getArticleBody());
+		}
+
+		if (blogPosting.getCustomFields() != null) {
+			existingBlogPosting.setCustomFields(blogPosting.getCustomFields());
 		}
 
 		if (blogPosting.getDateCreated() != null) {
@@ -178,6 +190,9 @@ public abstract class BaseBlogPostingResourceImpl
 
 	@Override
 	@Consumes({"application/json", "application/xml"})
+	@Operation(
+		description = "Replaces the blog post with the information sent in the request body. Any missing fields are deleted, unless they are required."
+	)
 	@PUT
 	@Parameters(
 		value = {@Parameter(in = ParameterIn.PATH, name = "blogPostingId")}
@@ -196,6 +211,9 @@ public abstract class BaseBlogPostingResourceImpl
 
 	@Override
 	@DELETE
+	@Operation(
+		description = "Deletes the blog post rating of the user who authenticated the request."
+	)
 	@Parameters(
 		value = {@Parameter(in = ParameterIn.PATH, name = "blogPostingId")}
 	)
@@ -210,6 +228,9 @@ public abstract class BaseBlogPostingResourceImpl
 
 	@Override
 	@GET
+	@Operation(
+		description = "Retrieves the blog post rating of the user who authenticated the request."
+	)
 	@Parameters(
 		value = {@Parameter(in = ParameterIn.PATH, name = "blogPostingId")}
 	)
@@ -226,6 +247,9 @@ public abstract class BaseBlogPostingResourceImpl
 
 	@Override
 	@Consumes({"application/json", "application/xml"})
+	@Operation(
+		description = "Creates a new blog post rating by the user who authenticated the request."
+	)
 	@POST
 	@Parameters(
 		value = {@Parameter(in = ParameterIn.PATH, name = "blogPostingId")}
@@ -244,6 +268,9 @@ public abstract class BaseBlogPostingResourceImpl
 
 	@Override
 	@Consumes({"application/json", "application/xml"})
+	@Operation(
+		description = "Replaces an existing blog post rating by the user who authenticated the request."
+	)
 	@PUT
 	@Parameters(
 		value = {@Parameter(in = ParameterIn.PATH, name = "blogPostingId")}
@@ -262,6 +289,9 @@ public abstract class BaseBlogPostingResourceImpl
 
 	@Override
 	@GET
+	@Operation(
+		description = "Retrieves the Site's blog postings. Results can be paginated, filtered, searched, and sorted."
+	)
 	@Parameters(
 		value = {
 			@Parameter(in = ParameterIn.PATH, name = "siteId"),
@@ -287,6 +317,7 @@ public abstract class BaseBlogPostingResourceImpl
 
 	@Override
 	@Consumes({"application/json", "application/xml"})
+	@Operation(description = "Creates a new blog post.")
 	@POST
 	@Parameters(value = {@Parameter(in = ParameterIn.PATH, name = "siteId")})
 	@Path("/sites/{siteId}/blog-postings")

@@ -31,6 +31,9 @@ import com.liferay.portal.kernel.util.StringBundler;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationHandler;
+
 import java.sql.Types;
 
 import java.util.Collections;
@@ -214,6 +217,32 @@ public class ResourceBlockPermissionModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
+	}
+
+	private static Function<InvocationHandler, ResourceBlockPermission>
+		_getProxyProviderFunction() {
+
+		Class<?> proxyClass = ProxyUtil.getProxyClass(
+			ResourceBlockPermission.class.getClassLoader(),
+			ResourceBlockPermission.class, ModelWrapper.class);
+
+		try {
+			Constructor<ResourceBlockPermission> constructor =
+				(Constructor<ResourceBlockPermission>)proxyClass.getConstructor(
+					InvocationHandler.class);
+
+			return invocationHandler -> {
+				try {
+					return constructor.newInstance(invocationHandler);
+				}
+				catch (ReflectiveOperationException roe) {
+					throw new InternalError(roe);
+				}
+			};
+		}
+		catch (NoSuchMethodException nsme) {
+			throw new InternalError(nsme);
+		}
 	}
 
 	private static final Map<String, Function<ResourceBlockPermission, Object>>
@@ -497,8 +526,7 @@ public class ResourceBlockPermissionModelImpl
 	@Override
 	public ResourceBlockPermission toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = (ResourceBlockPermission)ProxyUtil.newProxyInstance(
-				_classLoader, _escapedModelInterfaces,
+			_escapedModel = _escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -681,11 +709,8 @@ public class ResourceBlockPermissionModelImpl
 		return sb.toString();
 	}
 
-	private static final ClassLoader _classLoader =
-		ResourceBlockPermission.class.getClassLoader();
-	private static final Class<?>[] _escapedModelInterfaces = new Class[] {
-		ResourceBlockPermission.class, ModelWrapper.class
-	};
+	private static final Function<InvocationHandler, ResourceBlockPermission>
+		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
 
 	private long _mvccVersion;
 	private long _resourceBlockPermissionId;

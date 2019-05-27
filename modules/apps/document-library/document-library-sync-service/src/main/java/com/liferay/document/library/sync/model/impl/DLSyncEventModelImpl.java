@@ -31,6 +31,9 @@ import com.liferay.portal.kernel.util.StringBundler;
 
 import java.io.Serializable;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationHandler;
+
 import java.sql.Types;
 
 import java.util.Collections;
@@ -206,6 +209,32 @@ public class DLSyncEventModelImpl
 		getAttributeSetterBiConsumers() {
 
 		return _attributeSetterBiConsumers;
+	}
+
+	private static Function<InvocationHandler, DLSyncEvent>
+		_getProxyProviderFunction() {
+
+		Class<?> proxyClass = ProxyUtil.getProxyClass(
+			DLSyncEvent.class.getClassLoader(), DLSyncEvent.class,
+			ModelWrapper.class);
+
+		try {
+			Constructor<DLSyncEvent> constructor =
+				(Constructor<DLSyncEvent>)proxyClass.getConstructor(
+					InvocationHandler.class);
+
+			return invocationHandler -> {
+				try {
+					return constructor.newInstance(invocationHandler);
+				}
+				catch (ReflectiveOperationException roe) {
+					throw new InternalError(roe);
+				}
+			};
+		}
+		catch (NoSuchMethodException nsme) {
+			throw new InternalError(nsme);
+		}
 	}
 
 	private static final Map<String, Function<DLSyncEvent, Object>>
@@ -464,8 +493,7 @@ public class DLSyncEventModelImpl
 	@Override
 	public DLSyncEvent toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = (DLSyncEvent)ProxyUtil.newProxyInstance(
-				_classLoader, _escapedModelInterfaces,
+			_escapedModel = _escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -657,11 +685,8 @@ public class DLSyncEventModelImpl
 		return sb.toString();
 	}
 
-	private static final ClassLoader _classLoader =
-		DLSyncEvent.class.getClassLoader();
-	private static final Class<?>[] _escapedModelInterfaces = new Class[] {
-		DLSyncEvent.class, ModelWrapper.class
-	};
+	private static final Function<InvocationHandler, DLSyncEvent>
+		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
 
 	private long _syncEventId;
 	private long _companyId;
