@@ -23,7 +23,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * This class is used by SOAP remote services.
+ * This class is used by SOAP remote services, specifically {@link com.liferay.asset.display.page.service.http.AssetDisplayPageEntryServiceSoap}.
  *
  * @author Brian Wing Shun Chan
  * @generated

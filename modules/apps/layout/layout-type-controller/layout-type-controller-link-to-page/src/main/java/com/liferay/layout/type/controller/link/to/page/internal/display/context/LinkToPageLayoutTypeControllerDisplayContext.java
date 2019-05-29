@@ -72,6 +72,7 @@ public class LinkToPageLayoutTypeControllerDisplayContext {
 
 		layoutItemSelectorCriterion.setCheckDisplayPage(false);
 		layoutItemSelectorCriterion.setEnableCurrentPage(false);
+		layoutItemSelectorCriterion.setShowHiddenPages(true);
 
 		long selPlid = ParamUtil.getLong(_liferayPortletRequest, "selPlid");
 

@@ -15,6 +15,7 @@
 package com.liferay.portal.configuration.persistence.internal;
 
 import com.liferay.petra.reflect.ReflectionUtil;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.persistence.ReloadablePersistenceManager;
 import com.liferay.portal.configuration.persistence.internal.listener.ConfigurationModelListenerProvider;
@@ -50,6 +51,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Consumer;
 
 import javax.sql.DataSource;
 
@@ -663,12 +665,16 @@ public class ConfigurationPersistenceManager
 	}
 
 	private void _verifyConfigurations() {
+		_verifyConfigurationsBundleLocation();
+		_verifyConfigurationsFileName();
+	}
+
+	private void _verifyConfigurations(
+		String sql, Consumer<Dictionary<Object, Object>> dictionaryConsumer) {
+
 		try (Connection connection = _dataSource.getConnection();
 			PreparedStatement selectPS = connection.prepareStatement(
-				buildSQL(
-					"select configurationId, dictionary from Configuration_ " +
-						"where dictionary like " +
-							"'%felix.fileinstall.filename=\"file:%'"));
+				buildSQL(sql));
 			PreparedStatement updatePS = connection.prepareStatement(
 				buildSQL(
 					"update Configuration_ set dictionary = ? where " +
@@ -686,12 +692,7 @@ public class ConfigurationPersistenceManager
 						new UnsyncByteArrayInputStream(
 							dictionaryString.getBytes(StringPool.UTF8)));
 
-				String fileName = (String)dictionary.get(
-					_FELIX_FILE_INSTALL_FILENAME);
-
-				File file = new File(URI.create(fileName));
-
-				dictionary.put(_FELIX_FILE_INSTALL_FILENAME, file.getName());
+				dictionaryConsumer.accept(dictionary);
 
 				UnsyncByteArrayOutputStream unsyncByteArrayOutputStream =
 					new UnsyncByteArrayOutputStream();
@@ -709,6 +710,33 @@ public class ConfigurationPersistenceManager
 		catch (Exception e) {
 			ReflectionUtil.throwException(e);
 		}
+	}
+
+	private void _verifyConfigurationsBundleLocation() {
+		_verifyConfigurations(
+			StringBundler.concat(
+				"select configurationId, dictionary from Configuration_ where ",
+				"dictionary like '%felix.fileinstall.filename=%' and ",
+				"dictionary not like '%",
+				ConfigurationAdmin.SERVICE_BUNDLELOCATION, "=\"%'"),
+			dictionary -> dictionary.put(
+				ConfigurationAdmin.SERVICE_BUNDLELOCATION, "?"));
+	}
+
+	private void _verifyConfigurationsFileName() {
+		_verifyConfigurations(
+			StringBundler.concat(
+				"select configurationId, dictionary from Configuration_ where ",
+				"dictionary like '%", _FELIX_FILE_INSTALL_FILENAME,
+				"=\"file:%'"),
+			dictionary -> {
+				String fileName = (String)dictionary.get(
+					_FELIX_FILE_INSTALL_FILENAME);
+
+				File file = new File(URI.create(fileName));
+
+				dictionary.put(_FELIX_FILE_INSTALL_FILENAME, file.getName());
+			});
 	}
 
 	private static final String _FELIX_FILE_INSTALL_FILENAME =

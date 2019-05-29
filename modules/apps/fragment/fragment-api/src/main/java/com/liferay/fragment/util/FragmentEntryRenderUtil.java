@@ -22,9 +22,12 @@ import com.liferay.osgi.util.ServiceTrackerFactory;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringWriter;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.template.StringTemplateResource;
 import com.liferay.portal.kernel.template.Template;
 import com.liferay.portal.kernel.template.TemplateConstants;
+import com.liferay.portal.kernel.template.TemplateException;
 import com.liferay.portal.kernel.template.TemplateManager;
 import com.liferay.portal.kernel.template.TemplateManagerUtil;
 import com.liferay.portal.kernel.template.TemplateResource;
@@ -167,10 +170,20 @@ public class FragmentEntryRenderUtil {
 
 		template.prepare(request);
 
-		template.processTemplate(unsyncStringWriter);
+		try {
+			template.processTemplate(unsyncStringWriter);
+		}
+		catch (TemplateException te) {
+			if (_log.isWarnEnabled()) {
+				_log.warn("Unable to render fragment entry", te);
+			}
+		}
 
 		return unsyncStringWriter.toString();
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		FragmentEntryRenderUtil.class);
 
 	private static final ServiceTracker
 		<FragmentEntryProcessorRegistry, FragmentEntryProcessorRegistry>

@@ -1146,6 +1146,26 @@ definition {
 		LAR.importSiteCP(larFileName = "${larFileName}", siteName = "Site Name");
 	}
 
+	@description = "This is a use case for LPS-88498."
+	@priority = "5"
+	test ExportViaGuest {
+		LAR.exportSiteCP();
+
+		AssertTextEquals.assertPartialText(
+			locator1 = "SitePagesExport#CURRENT_AND_PREVIOUS_STATUS",
+			value1 = "Successful");
+
+		var downloadURL = selenium.getAttribute("//ul/li/div/h5/span/a@href");
+
+		User.logoutPG();
+
+		Navigator.openSpecificURL(url = "${downloadURL}");
+
+		AssertTextEquals(
+			locator1 = "Home#ERROR_MESSAGE_ALERT_ERROR",
+			value1 = "Not Found");
+	}
+
 	@priority = "5"
 	test ImportCorruptedFile {
 		property portal.acceptance = "true";

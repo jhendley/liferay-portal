@@ -770,10 +770,6 @@ definition {
 		AssertElementPresent(locator1 = "Ratings#YOUR_RATING_STAR_4");
 	}
 
-	macro rateCommentAsGood {
-		Click(locator1 = "Ratings#THUMB_UP");
-	}
-
 	macro removeAttachmentViaPageEdit {
 		AssertClick(locator1 = "Link#EDIT", value1 = "Edit");
 
@@ -1036,12 +1032,6 @@ definition {
 			locator1 = "Comments#COMMENT_BODY_SPECIFIC",
 			value1 = "${entryComment}"
 		);
-	}
-
-	macro viewCommentRatingGood {
-		AssertTextEquals(locator1 = "Ratings#THUMB_UP", value1 = "1");
-
-		AssertTextEquals(locator1 = "Ratings#THUMB_DOWN", value1 = "0");
 	}
 
 	macro viewCP {

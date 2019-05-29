@@ -24,7 +24,7 @@ SiteNavigationMenu siteNavigationMenu = siteNavigationMenuDisplayContext.getSite
 String siteNavigationMenuName = StringPool.BLANK;
 
 if (siteNavigationMenu != null) {
-	siteNavigationMenuName = siteNavigationMenu.getName();
+	siteNavigationMenuName = HtmlUtil.escape(siteNavigationMenu.getName());
 }
 else if (siteNavigationMenuDisplayContext.getSelectSiteNavigationMenuType() == SiteNavigationConstants.TYPE_PRIVATE_PAGES_HIERARCHY) {
 	siteNavigationMenuName = LanguageUtil.get(request, "private-pages-hierarchy");
@@ -86,7 +86,7 @@ else {
 						<div class="mb-2 text-muted">
 							<span id="<portlet:namespace />navigationMenuName">
 								<c:if test="<%= siteNavigationMenuDisplayContext.isSiteNavigationMenuSelected() && (siteNavigationMenu != null) %>">
-									<%= siteNavigationMenu.getName() %>
+									<%= siteNavigationMenuName %>
 								</c:if>
 							</span>
 							<span class="mt-1 <%= (siteNavigationMenuDisplayContext.isSiteNavigationMenuSelected() && (siteNavigationMenu != null)) ? StringPool.BLANK : "hide" %>" id="<portlet:namespace />removeSiteNavigationMenu" role="button">

@@ -85,7 +85,7 @@ public class ConfigurationModelToDDMFormValuesConverter {
 		}
 		else {
 			if (hasConfigurationAttribute(configuration, attributeDefinition)) {
-				values = AttributeDefinitionUtil.getProperty(
+				values = AttributeDefinitionUtil.getPropertyStringArray(
 					attributeDefinition, configuration);
 			}
 			else {

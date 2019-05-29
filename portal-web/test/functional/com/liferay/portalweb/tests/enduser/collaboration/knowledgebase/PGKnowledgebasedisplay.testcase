@@ -503,10 +503,11 @@ definition {
 
 		Navigator.gotoPage(pageName = "Knowledge Base Display Page");
 
-		KBArticle.rateArticlePG(
-			articleVoteCount = "1",
-			kbArticleTitle = "Knowledge Base Article Title",
-			rateUp = "true"
+		LexiconEntry.rate(ratingResult = "Thumb Up");
+
+		LexiconEntry.viewRating(
+			ratingResult = "Thumb Up",
+			voteCount = "1"
 		);
 	}
 
@@ -1025,10 +1026,11 @@ definition {
 			kbArticleTitle = "Knowledge Base Article Title"
 		);
 
-		KBArticle.rateArticlePG(
-			articleVoteCount = "1",
-			kbArticleTitle = "Knowledge Base Article Title",
-			rateUp = "true"
+		LexiconEntry.rate(ratingResult = "Thumb Up");
+
+		LexiconEntry.viewRating(
+			ratingResult = "Thumb Up",
+			voteCount = "1"
 		);
 
 		ProductMenu.gotoPortlet(
@@ -1069,10 +1071,7 @@ definition {
 
 		Navigator.gotoPage(pageName = "Knowledge Base Display Page");
 
-		KBArticle.rateArticlePG(
-			articleVoteCount = "1",
-			kbArticleTitle = "Knowledge Base Article Title"
-		);
+		LexiconEntry.viewRating(voteCount = "1");
 	}
 
 	@priority = "3"

@@ -266,15 +266,14 @@ public class ExportConfigurationMVCResourceCommand
 				continue;
 			}
 
-			String[] values = AttributeDefinitionUtil.getProperty(
+			Object value = AttributeDefinitionUtil.getPropertyObject(
 				attributeDefinition, configuration);
 
-			if (values.length == 1) {
-				properties.put(attributeDefinition.getID(), values[0]);
+			if (value == null) {
+				continue;
 			}
-			else if (values.length > 1) {
-				properties.put(attributeDefinition.getID(), values);
-			}
+
+			properties.put(attributeDefinition.getID(), value);
 		}
 
 		return properties;
